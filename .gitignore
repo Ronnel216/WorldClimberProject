@@ -34,5 +34,7 @@ sysinfo.txt
 *.unitypackage
 
 # Unity Original ignore
+Assets/Temp.meta
 Assets/Temp/*
+Assets/ImportPackage/Static.meta
 Assets/ImportPackage/Static/*
