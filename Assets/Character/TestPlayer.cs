@@ -133,10 +133,17 @@ public class TestPlayer : MonoBehaviour {
 
     private void OnCollisionStay(Collision collision)
     {
+        Vector3 totalVec = Vector3.zero;
+
+        // 法線の平均を求める
+        foreach(var contact in collision.contacts)
+            totalVec += contact.normal;
+        wallNoraml = totalVec /= collision.contacts.Length;  // OnCollisionStayを通る条件として接触していることは確実なので 0除算はあり得ない
+
         particleSystem.transform.position = collision.contacts[0].point;
         particleSystem.transform.LookAt(collision.contacts[0].point + collision.contacts[0].normal);
-        wallNoraml = collision.contacts[0].normal;
-            // 掴んでいる時は落ちない
+
+        // 掴んでいる時は落ちない
         //rigid.velocity = new Vector3(rigid.velocity.x, rigid.velocity.y * 0.1f, rigid.velocity.z);
     }
 
