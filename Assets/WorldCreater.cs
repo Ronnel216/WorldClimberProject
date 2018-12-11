@@ -99,22 +99,47 @@ public class WorldCreater : MonoBehaviour {
 
     private void ShapeLandShape(ref Vector3[] vertices, ref Vector2[] uv)
     {
+        // 頂点の位置の倍率係数
+        // 1mとの比較で表記
+        // uvに使用する
+        Vector2[] vertFactors = new Vector2[vertices.Length];
+
         // 頂点の配置
         for (int i = 0; i < vertices.Length; i++)
         {
-            float distance = 1;
+            int x = i % vertNum.x, y = i / vertNum.x;
 
-            vertices[i] = new Vector3(i % vertNum.x * distance, i / vertNum.x * -distance);
+            // 頂点の変位
+            // 仮　頂点の位置は角度で決めるので　変位での計算は多分しない
+            Vector3 translationVec = new Vector3(1, -1);
+            
+            vertices[i] = new Vector3(x * translationVec.x, y * translationVec.y);
+            if (y == 2) // 仮でゆがませている
+            {
+                vertices[i] = new Vector3(x * translationVec.x, y * translationVec.y, 5);
+            }
 
-            vertices[i] -= new Vector3(vertNum.x / 2.0f, vertNum.y * -distance, 0);     // 仮のメッシュのOffset
+            vertFactors[i] = new Vector2(
+                x > 0 ? (vertices[x + y * vertNum.x] - vertices[(x - 1) + y * vertNum.x]).magnitude : 0,
+                y > 0 ? (vertices[x + y * vertNum.x] - vertices[x + (y - 1) * vertNum.x]).magnitude : 0);
+            Debug.Log(x > 0 ? (vertices[x + y * vertNum.x] - vertices[(x - 1) + y * vertNum.x]).magnitude : 0);
+            vertices[i] -= new Vector3(vertNum.x / 2.0f, vertNum.y, 0);     // 仮のメッシュのOffset
+        }
+
+        for (int i = 0; i < vertFactors.Length; i++) // 係数の調整
+        {
+            Debug.Log("vertFactor" + i.ToString() + vertFactors[i]);
+
         }
 
         // uvの設定
         // ! 面の数は　x > 1 && y > 1とする
         for (int i = 0; i < vertices.Length; i++)
         {
-            float distance = 1.0f / (vertNum.x - 1);
-            Vector2 point = new Vector2((float)(i % vertNum.x) / (vertNum.x - 1), (float)(i / vertNum.x) / (vertNum.y - 1));
+            int x = i % vertNum.x, y = i / vertNum.x;
+            float uvWide = 1.0f;  // 一面に付きテクスチャ一枚
+
+            Vector2 point = new Vector2((float)(x) * uvWide + uvWide * vertFactors[i].x, (float)(y) * uvWide + uvWide * vertFactors[i].y);         
 
             uv[i] = point;
         }
