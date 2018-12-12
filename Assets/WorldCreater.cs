@@ -116,14 +116,10 @@ public class WorldCreater : MonoBehaviour {
             vertices[i] = new Vector3(x * translationVec.x, y * translationVec.y);
             if (y == 2) // 仮でゆがませている
             {
-                vertices[i] = new Vector3(x * translationVec.x, y * translationVec.y, 5);
+                vertices[i] = new Vector3(x * translationVec.x, y * translationVec.y, -1);
             }
 
-            vertFactors[i] = new Vector2(
-                x > 0 ? (vertices[x + y * vertNum.x] - vertices[(x - 1) + y * vertNum.x]).magnitude : 0,
-                y > 0 ? (vertices[x + y * vertNum.x] - vertices[x + (y - 1) * vertNum.x]).magnitude : 0);
-            Debug.Log(x > 0 ? (vertices[x + y * vertNum.x] - vertices[(x - 1) + y * vertNum.x]).magnitude : 0);
-            vertices[i] -= new Vector3(vertNum.x / 2.0f, vertNum.y, 0);     // 仮のメッシュのOffset
+            vertices[i] -= new Vector3(vertNum.x / 2.0f, -vertNum.y, 0);     // 仮のメッシュのOffset
         }
 
         for (int i = 0; i < vertFactors.Length; i++) // 係数の調整
@@ -137,11 +133,17 @@ public class WorldCreater : MonoBehaviour {
         for (int i = 0; i < vertices.Length; i++)
         {
             int x = i % vertNum.x, y = i / vertNum.x;
-            float uvWide = 1.0f;  // 一面に付きテクスチャ一枚
+            Vector3 uvWide = new Vector3(1.0f/vertNum.x, 1.0f/ vertNum.y, 0);  // 一面に付きテクスチャ一枚
 
-            Vector2 point = new Vector2((float)(x) * uvWide + uvWide * vertFactors[i].x, (float)(y) * uvWide + uvWide * vertFactors[i].y);         
+            //Vector2 point = new Vector2(uvWide.x * vertices[i].x, uvWide.y * vertices[i].y);　// xy平面のみ対応
+            Vector2 point = new Vector2(vertices[i].x, vertices[i].y);　// xy平面のみ対応
+
+            if (i == 2)
+            {
+            }
 
             uv[i] = point;
-        }
+        }       
+        
     }
 }
