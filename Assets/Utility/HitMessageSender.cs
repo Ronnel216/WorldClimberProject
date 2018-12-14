@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-using CallBackFuncType = System.Action<HitMessageSender, UnityEngine.Collision>;
+using CallBackFuncType = System.Action<HitMessageSender, UnityEngine.Collider>;
 
 public class HitMessageSender : MonoBehaviour {
 
@@ -35,23 +35,39 @@ public class HitMessageSender : MonoBehaviour {
     public Rigidbody rigid;
 
     /*
-     * 0 OnCollisionEnter
-     * 1 OnCollisionStay
-     * 2 OnCollisionExit
+     * 0 OnTriggerEnter
+     * 1 OnTriggerStay
+     * 2 OnTriggerExit
      */
 
-    private void OnCollisionEnter(Collision collision)
+    //private void OnCollisionEnter(Collision collision)
+    //{
+    //    callbackFuncs[0](this, collision);
+    //}
+
+    //private void OnCollisionStay(Collision collision)
+    //{
+    //    callbackFuncs[1](this, collision);
+    //}
+
+    //private void OnCollisionExit(Collision collision)
+    //{
+    //    callbackFuncs[2](this, collision);
+    //}
+
+    private void OnTriggerEnter(Collider collider)
     {
-        callbackFuncs[0](this, collision);
+        callbackFuncs[0](this, collider);
     }
 
-    private void OnCollisionStay(Collision collision)
+    private void OnTriggerStay(Collider collider)
     {
-        callbackFuncs[1](this, collision);
+        callbackFuncs[1](this, collider);
     }
 
-    private void OnCollisionExit(Collision collision)
+    private void OnTriggerExit(Collider collider)
     {
-        callbackFuncs[2](this, collision);
+        callbackFuncs[2](this, collider);
     }
+
 }

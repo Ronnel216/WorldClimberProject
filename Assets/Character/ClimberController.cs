@@ -156,7 +156,7 @@ public class ClimberController : MonoBehaviour {
         // 各体のパーツの初期化
         for (int i = 0; i < BodyParts.Num; i++)
         {
-            var comp = HitMessageSender.AddHitMessageSender(parts[i], callBackFuncs[i], new string[]{tags[i]});
+            //var comp = HitMessageSender.AddHitMessageSender(parts[i], callBackFuncs[i], new string[]{tags[i]});
         }
     }
 

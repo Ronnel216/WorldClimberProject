@@ -5,7 +5,10 @@ using UnityEngine;
 public class ClimbingSystem : MonoBehaviour {
 
     [SerializeField]
-    Vector3[] edge;
+    Vector3[] edgeTop;
+
+    [SerializeField]
+    Vector3[] edgeBottom;
 
     [SerializeField]
     GameObject leftHand;
@@ -28,10 +31,21 @@ public class ClimbingSystem : MonoBehaviour {
     [SerializeField]
     float handMovement = 0.1f;
 
+    [SerializeField]
+    float handMovementSpdFactor = 0.03f;
+
     GameObject forwardHand; // 進行方向の手
     GameObject backHand;    // 進行方向と逆の手
 
-    CharacterJoint gripingJoint;
+    Vector3[] gripPoint;
+
+    CharacterJoint grippingJoint;
+
+    //[SerializeField]
+    //GameObject grippingAbleArea;
+
+    //bool isGrip;    // 仮のフラグ    ステイトにあとで変えます
+    // グリップ情報をまとめるクラス作ってもいいかも
 
     enum HandMovementMode
     {
@@ -59,6 +73,21 @@ public class ClimbingSystem : MonoBehaviour {
     // Use this for initialization
     void Start () {
         rigid = GetComponent<Rigidbody>();
+        //isGrip = true;
+
+        // 掴んでいる地形
+        gripPoint = edgeTop;
+
+        //var funcs = new System.Action < HitMessageSender, UnityEngine.Collider >[3];
+        //funcs[0] = (HitMessageSender a, UnityEngine.Collider b) => { };
+        //funcs[1] = (HitMessageSender sender, UnityEngine.Collider collider) => 
+        //{
+
+        //};
+        //funcs[2] = (HitMessageSender a, UnityEngine.Collider b) => { };
+        //HitMessageSender.AddHitMessageSender(grippingAbleArea, funcs, new string[] { });
+
+
 
         handMovementMode = HandMovementMode.Close;
 
@@ -66,42 +95,48 @@ public class ClimbingSystem : MonoBehaviour {
         ClimberMethod.SetHandForwardAndBack(ref rightHand, ref leftHand);
 
         // 体を制御 -----
-        gripingJoint = gripAnchar.GetComponent<CharacterJoint>();
-        Vector3[] handsPos = ClimberMethod.GetHandsPosition(rightHand, leftHand);
-        ClimberMethod.InitGripingAnchar(gripingJoint, (handsPos[0] + handsPos[1]) / 2, -Vector3.down * 2);
+        grippingJoint = gripAnchar.GetComponent<CharacterJoint>();
+        forwardHand = rightHand; backHand = leftHand;
+        Vector3[] handsPos = ClimberMethod.GetHandsPosition(forwardHand, backHand);
+        ClimberMethod.InitgrippingAnchar(grippingJoint, (handsPos[0] + handsPos[1]) / 2, -Vector3.down * 2);
     }
 
     void FixedUpdate()
     {
+        //if (isGrip == false) return;
+
         // 体を制御 -----
         var handsPos = ClimberMethod.GetHandsPosition(rightHand, leftHand);
 
         // 崖つかまり時の　アンカー設定
-        ClimberMethod.SetGripingAnchar(gripingJoint, (handsPos[0] + handsPos[1]) / 2);
+        ClimberMethod.SetgrippingAnchar(grippingJoint, (handsPos[0] + handsPos[1]) / 2);
 
         // アンカーの状態を反映する
-        ClimberMethod.ApplyGripingAnchar(rigid, gripAnchar.GetComponent<Rigidbody>());
+        ClimberMethod.ApplygrippingAnchar(rigid, gripAnchar.GetComponent<Rigidbody>());
 
-        if (Input.GetKey(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space))
         {
             Debug.Log("Display");
-            rigid.AddForce(Vector3.up, ForceMode.VelocityChange);
+            //isGrip = false;
         }
 
         return;
         
-        if ((rigid.transform.position - handsPos[1]).magnitude < armLength && (rigid.transform.position - handsPos[0]).magnitude < armLength) return;
+        //if ((rigid.transform.position - handsPos[1]).magnitude < armLength && (rigid.transform.position - handsPos[0]).magnitude < armLength) return;
 
-        rigid.velocity = new Vector3(rigid.velocity.x, rigid.velocity.y * 0.0f, rigid.velocity.z);
+        //rigid.velocity = new Vector3(rigid.velocity.x, rigid.velocity.y * 0.0f, rigid.velocity.z);
 
-        // 手の方向に力を加える
-        rigid.AddForceAtPosition(handsPos[1] - rigid.transform.position, leftArmRoot.transform.position, ForceMode.Impulse);
-        rigid.AddForceAtPosition(handsPos[0] - rigid.transform.position, rightArmRoot.transform.position, ForceMode.Impulse);
+        //// 手の方向に力を加える
+        //rigid.AddForceAtPosition(handsPos[1] - rigid.transform.position, leftArmRoot.transform.position, ForceMode.Impulse);
+        //rigid.AddForceAtPosition(handsPos[0] - rigid.transform.position, rightArmRoot.transform.position, ForceMode.Impulse);
 
     }
 
     // Update is called once per frame
     void Update () {
+
+        //if (isGrip == false) return;
+
         float magnitudeHandToHand = (rightHand.transform.position - leftHand.transform.position).magnitude;
         /*
          * X = 手の長さ * 2 * 調整値, Y = X - 移動距離
@@ -115,6 +150,26 @@ public class ClimbingSystem : MonoBehaviour {
 
         var inputMovement = ClimberMethod.GetInputMovement();
 
+        if (Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            gripPoint = edgeTop;
+            var pos = ClimberMethod.GetHandsPosition(forwardHand, backHand);
+            forwardHand.transform.position = new Vector3(pos[0].x, gripPoint[0].y, pos[0].z);
+            backHand.transform.position = new Vector3(pos[1].x, gripPoint[0].y, pos[1].z);
+            Vector3[] handsPos = ClimberMethod.GetHandsPosition(forwardHand, backHand);
+            ClimberMethod.InitgrippingAnchar(grippingJoint, (handsPos[0] + handsPos[1]) / 2, -Vector3.down * 2);
+
+        }
+        if (Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            gripPoint = edgeBottom;
+            var pos = ClimberMethod.GetHandsPosition(forwardHand, backHand);
+            forwardHand.transform.position = new Vector3(pos[0].x, gripPoint[0].y, pos[0].z);
+            backHand.transform.position = new Vector3(pos[1].x, gripPoint[0].y, pos[1].z);
+            Vector3[] handsPos = ClimberMethod.GetHandsPosition(forwardHand, backHand);
+            ClimberMethod.InitgrippingAnchar(grippingJoint, (handsPos[0] + handsPos[1]) / 2, -Vector3.down * 2);
+
+        }
 
         Vector3 moveVec = Vector3.zero;
         //GameObject forwardHand = null;
@@ -132,67 +187,64 @@ public class ClimbingSystem : MonoBehaviour {
             case HandMovementMode.Advance:
                 if (inputMovement.x > 0)
                 {
-                    forwardHand = rightHand;
-                    backHand = leftHand;
-                    moveVec = edge[0] - edge[1];
+                    ClimberMethod.SetHandForwardAndBack(ref forwardHand, ref backHand, gripPoint[0]);
+                    moveVec = gripPoint[0] - gripPoint[1];
 
                 }
                 else if (inputMovement.x < 0)
                 {
-                    forwardHand = leftHand;
-                    backHand = rightHand;
-                    moveVec = edge[1] - edge[0];
+                    ClimberMethod.SetHandForwardAndBack(ref forwardHand, ref backHand, gripPoint[1]);
+                    moveVec = gripPoint[1] - gripPoint[0];
 
                 }
                 else
+                {
+                    // 入力なしで後方の手を近づける
+                    handMovementMode = HandMovementMode.Close;
+                    break;
+                }
+
+                // 手同士の距離が最大を超えた時　後方の手を近づける状態に遷移
+                if (maxHandToHand < magnitudeHandToHand)
                 {
                     handMovementMode = HandMovementMode.Close;
                     break;
                 }
-          
-                if (maxHandToHand - 0.05f < magnitudeHandToHand)
-                    handMovementMode = HandMovementMode.Close;
 
-
+                // 前方の手を進める
                 if (maxHandToHand > magnitudeHandToHand)
                 {
-
-                    float distance = maxHandToHand - magnitudeHandToHand;
-                    distance *= 0.1f;
-                    forwardHand.transform.Translate(moveVec.normalized * distance);
+                    var result = ClimberMethod.CalcLerpTranslation(
+                        moveVec.normalized,
+                        magnitudeHandToHand, 
+                        handMovementSpdFactor);
+                    forwardHand.transform.Translate(result);
                 }
                 break;
 
             case HandMovementMode.Close:
-                if (inputMovement.x > 0)
+                // 前方の手を進める状態に遷移
+                bool isInputMovement = inputMovement.x > 0 || inputMovement.x < 0;
+                if (isInputMovement)
                 {
-                    if (minHandToHand + 0.05f > magnitudeHandToHand)
+                    if (minHandToHand > magnitudeHandToHand)
                     {
                         handMovementMode = HandMovementMode.Advance;
                         break;
                     }
                 }
-                else if (inputMovement.x < 0)
-                {
-                    if (minHandToHand + 0.05f > magnitudeHandToHand)
-                    {
-                        handMovementMode = HandMovementMode.Advance;
-                        break;
-                    }
-                }
-                else
-                {
-                }
 
-
+                // 後方の手を近づける
                 if (minHandToHand < magnitudeHandToHand)
                 {
-                    //Vector3 moveVec = Vector3.zero;
                     moveVec = forwardHand.transform.position - backHand.transform.position;
 
-                    float distance = magnitudeHandToHand - minHandToHand;
-                    distance *= 0.1f;
-                    backHand.transform.Translate(moveVec.normalized * distance);
+                    float limit = -minHandToHand / 2;
+                    var result = ClimberMethod.CalcLerpTranslation(
+                        moveVec.normalized, 
+                        magnitudeHandToHand - limit, 
+                        handMovementSpdFactor);
+                    backHand.transform.Translate(result);
                 }
                 break;
 
