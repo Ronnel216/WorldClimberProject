@@ -56,20 +56,12 @@ static public class ClimberMethod
         return new Vector3[]{ forwardHand.transform.position, backHand.transform.position };
     }
 
-    static public void InitgrippingAnchar(CharacterJoint joint, Vector3 connected, Vector3 anchar)
+    static public void SetGrippingAnchar(Rigidbody connectedRigid, Vector3 position)
     {
-        joint.connectedAnchor = connected;
-        joint.anchor = anchar;
-        joint.autoConfigureConnectedAnchor = false;
+        connectedRigid.transform.position = position;
     }
 
-    static public void SetgrippingAnchar(CharacterJoint joint, Vector3 connected)
-    {
-        // 崖つかまり時の　アンカー設定
-        joint.connectedAnchor = connected;        
-    }
-
-    static public void ApplygrippingAnchar(Rigidbody rigid, Rigidbody anchar)
+    static public void ApplyGrippingAnchar(Rigidbody rigid, Rigidbody anchar)
     {
         // アンカーの状態を反映する
         var ancharRigid = anchar.GetComponent<Rigidbody>();
