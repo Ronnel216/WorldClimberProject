@@ -21,6 +21,9 @@ public class ClimbingSystem : MonoBehaviour {
     GameObject gripAnchar;
 
     [SerializeField]
+    SubCollider nearGrippable;
+
+    [SerializeField]
     float armLength = 1f;
 
     Rigidbody rigid;
@@ -30,6 +33,9 @@ public class ClimbingSystem : MonoBehaviour {
 
     [SerializeField]
     float handMovementSpdFactor = 0.03f;
+
+    // デバッグ表示用 Gizmos
+    List<System.Action> callInOnDrawGizmos;
 
     // クライマーのステートマシーン
     InterfaceClimberState state;
@@ -63,6 +69,7 @@ public class ClimbingSystem : MonoBehaviour {
     // Use this for initialization
     void Start () {
         rigid = GetComponent<Rigidbody>();
+        callInOnDrawGizmos = new List<System.Action>();
 
         //var funcs = new System.Action < HitMessageSender, UnityEngine.Collider >[3];
         //funcs[0] = (HitMessageSender a, UnityEngine.Collider b) => { };
@@ -100,15 +107,10 @@ public class ClimbingSystem : MonoBehaviour {
 
     void OnDrawGizmos()
     {
-        // グリップポイントが存在するか？
-        Ray ray = new Ray(rigid.transform.position, Vector3.down);
-        LayerMask mask = LayerMask.NameToLayer("GripPoint");
-        float maxDistance = 1.0f;
-        float radius = 0.5f;
+        if (rigid == false) return;
 
-        Gizmos.DrawRay(ray.origin, ray.direction * maxDistance);
-        Gizmos.DrawWireSphere(ray.origin + ray.direction * maxDistance, radius);
-
+        foreach (var func in callInOnDrawGizmos) func();
+        callInOnDrawGizmos.Clear();
     }
 
     // ステートの汎用メソッド
@@ -154,6 +156,7 @@ public class ClimbingSystem : MonoBehaviour {
         GripPoint gripPoint;
 
         CharacterJoint grippingJoint;
+        private bool isChangeGripPoint;
 
         // Use this for initialization
         public void Init(ClimbingSystem system)
@@ -166,6 +169,7 @@ public class ClimbingSystem : MonoBehaviour {
             forwardHand = system.rightHand; backHand = system.leftHand;
             Vector3[] handsPos = ClimberMethod.GetHandsPosition(forwardHand, backHand);
 
+            isChangeGripPoint = false;
         }
 
         public void FixedUpdate(ClimbingSystem system)
@@ -189,6 +193,18 @@ public class ClimbingSystem : MonoBehaviour {
         public void Update(ClimbingSystem system)
         {
             //if (isGrip == false) return;
+            
+            if (isChangeGripPoint)
+            {
+                float step = gripPoint.SetHandsPosition(forwardHand, backHand, 0.5f);
+                bool isFinished = 0.01f > step;
+                if (isFinished)
+                {
+                    isChangeGripPoint = false;
+                    gripPoint.SetHandsPosition(forwardHand, backHand);
+                }
+                return;
+            }
 
             float magnitudeHandToHand = (system.rightHand.transform.position - system.leftHand.transform.position).magnitude;
             /*
@@ -203,38 +219,94 @@ public class ClimbingSystem : MonoBehaviour {
 
             var inputMovement = ClimberMethod.GetInputMovement();
 
-
-
             if (Input.GetKeyDown(KeyCode.UpArrow))
             {
-                gripPoint = system.gripTop.GetComponent<GripPoint>();
-                gripPoint.SetHandsPosition(forwardHand, backHand);
+                //// グリップポイントが存在するか？
+                //RaycastHit hitInfo;
+                //Ray ray = new Ray(system.rigid.transform.position, Vector3.up);
+                //LayerMask mask = LayerMask.GetMask("GripPoint");
+                //float maxDistance = 3.0f;
+                //float radius = 0.5f;
+                //if (Physics.SphereCast(ray, radius, out hitInfo, maxDistance, mask.value))
+                //{
+                //    gripPoint.gameObject.layer = LayerMask.NameToLayer("GripPoint");
+                //    gripPoint = hitInfo.collider.GetComponent<GripPoint>();
+                //    Debug.Log(hitInfo.collider.name);
+                //    // 存在する場合　体を向ける　手を伸ばす
+                //    gripPoint.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");                
+                //    isChangeGripPoint = true;
+
+                //    system.callInOnDrawGizmos.Add(() =>
+                //    {
+                //        Gizmos.DrawRay(ray.origin, ray.direction * hitInfo.distance);
+                //        Gizmos.DrawWireSphere(ray.origin + ray.direction * hitInfo.distance, radius);
+                //    });
+
+                //}
+                //else
+                //{
+
+                //}
 
             }
 
+            //// 表示用
+            //RaycastHit hitInfo;
+            //Ray ray = new Ray(system.rigid.transform.position, Vector3.down);
+            //LayerMask mask = LayerMask.GetMask("GripPoint");
+            //float maxDistance = 1.0f;
+            //float radius = 0.5f;
+            //if (Physics.SphereCast(ray, radius, out hitInfo, maxDistance, mask.value))
+            //{
+            //    system.callInOnDrawGizmos.Add(() =>
+            //    {
+            //        Gizmos.DrawRay(ray.origin, ray.direction * hitInfo.distance);
+            //        Gizmos.DrawWireSphere(ray.origin + ray.direction * hitInfo.distance, radius);
+            //    });
+            //}
+            //else
+            //{
+            //    // 存在しない場合挙動なし                      
+            //    system.callInOnDrawGizmos.Add(() =>
+            //    {
+            //        Gizmos.DrawRay(ray.origin, ray.direction * maxDistance);
+            //        Gizmos.DrawWireSphere(ray.origin + ray.direction * maxDistance, radius);
+            //    });
+            //}
+
             if (Input.GetKeyDown(KeyCode.DownArrow))
             {
+                Vector3 movement = Vector3.down;
+                float minDistanceSqr = float.MaxValue;
+                Collider nearGripColi = null;
+                Vector3 basePos = system.nearGrippable.transform.position;
+                foreach (var collider in system.nearGrippable.Colliders)
+                {
+                    Vector3 point = collider.ClosestPoint(basePos + movement);
+                    float distanceSqr = (point - basePos).sqrMagnitude;
+                    if (minDistanceSqr > distanceSqr)
+                    {
+                        minDistanceSqr = distanceSqr;
+                        nearGripColi = collider;
+                    }
+                }
+
                 // グリップポイントが存在するか？
                 RaycastHit hitInfo;
                 Ray ray = new Ray(system.rigid.transform.position, Vector3.down);
-                LayerMask mask = LayerMask.NameToLayer("GripPoint");
-                float maxDistance = 1.0f;
+                LayerMask mask = LayerMask.GetMask("GripPoint");
+                float maxDistance = 2.0f;
                 float radius = 0.5f;
-
-                if (Physics.SphereCast(ray, radius, out hitInfo, maxDistance, mask))
+                if (Physics.SphereCast(ray, radius, out hitInfo, maxDistance, mask.value))
                 {
-                    Debug.Log(hitInfo.collider.tag);
-
-                    var gripPoint = hitInfo.collider.GetComponent<GripPoint>();
+                    gripPoint.gameObject.layer = LayerMask.NameToLayer("GripPoint");
+                    gripPoint = hitInfo.collider.GetComponent<GripPoint>();
+                    Debug.Log(hitInfo.collider.name);
+                    gripPoint.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
                     // 存在する場合　体を向ける　手を伸ばす
-                    gripPoint = system.gripBottom.GetComponent<GripPoint>();
-                    gripPoint.SetHandsPosition(forwardHand, backHand);
+                    isChangeGripPoint = true;
+                }
 
-                }
-                else
-                {
-                    // 存在しない場合挙動なし                      
-                }
 
             }
 

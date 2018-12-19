@@ -22,13 +22,28 @@ public class GripPoint : MonoBehaviour {
         return movement.normalized;    // 仮　実際はedgeを元に計算を行う
     }
 
-    public void SetHandsPosition(GameObject forward, GameObject back)
+    public float SetHandsPosition(GameObject forward, GameObject back, float lerp = 1.0f)
     {
         GameObject[] hands = new GameObject[2] { forward, back};
         var pos = ClimberMethod.GetHandsPosition(hands[0], hands[1]);
-        hands[0].transform.position = new Vector3(pos[0].x, edge[0].y, pos[0].z);   // 仮    実際は傾きや位置などで変わる
-        hands[1].transform.position = new Vector3(pos[1].x, edge[0].y, pos[1].z);   // 仮
+        Vector3[] target = new Vector3[2];
+        target[0] = new Vector3(pos[0].x, edge[0].y, pos[0].z);   // 仮    実際は傾きや位置などで変わる
+        target[1] = new Vector3(pos[1].x, edge[0].y, pos[1].z);   // 仮
+        Vector3[] result = new Vector3[2];
 
+        for (var i = 0; i < 2; i++)
+        {
+            result[i] = Vector3.Lerp(hands[i].transform.position, target[i], lerp);
+        }
+
+        hands[0].transform.position = result[0];
+        hands[1].transform.position = result[1];
+
+        float totalSqr = 0.0f;
+        for (var i = 0; i < 2; i++)
+            totalSqr += (hands[i].transform.position - target[i]).sqrMagnitude;
+
+        return totalSqr;
     }
 
     /// <summary>

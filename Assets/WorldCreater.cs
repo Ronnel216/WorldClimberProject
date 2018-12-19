@@ -119,6 +119,11 @@ public class WorldCreater : MonoBehaviour {
                 vertices[i] = new Vector3(x * translationVec.x, y * translationVec.y, -1);
             }
 
+            if (y == 3) // 仮でゆがませている
+            {
+                vertices[i] = new Vector3(x * translationVec.x, y * translationVec.y, -1);
+            }
+
             vertices[i] -= new Vector3(vertNum.x / 2.0f, -vertNum.y, 0);     // 仮のメッシュのOffset
         }
 
