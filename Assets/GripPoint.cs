@@ -34,13 +34,13 @@ public class GripPoint : MonoBehaviour {
         return Vector3.zero;
     }
 
-    public float SetHandsPosition(GameObject forward, GameObject back, float lerp = 1.0f)
+    public float SetHandsPosition(GameObject forward, GameObject back, Collider selfColi, float lerp = 1.0f)
     {
         GameObject[] hands = new GameObject[2] { forward, back};
         var pos = ClimberMethod.GetHandsPosition(hands[0], hands[1]);
         Vector3[] target = new Vector3[2];
-        target[0] = new Vector3(pos[0].x, edge[0].y, pos[0].z);   // 仮    実際は傾きや位置などで変わる
-        target[1] = new Vector3(pos[1].x, edge[0].y, pos[1].z);   // 仮
+        target[0] = selfColi.ClosestPoint(pos[0]);
+        target[1] = selfColi.ClosestPoint(pos[1]);
         Vector3[] result = new Vector3[2];
 
         for (var i = 0; i < 2; i++)

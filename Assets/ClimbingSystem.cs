@@ -34,6 +34,9 @@ public class ClimbingSystem : MonoBehaviour {
     [SerializeField]
     float handMovementSpdFactor = 0.03f;
 
+    // 掴んでいる地形
+    Collider grippingCollider;
+
     // デバッグ表示用 Gizmos
     List<System.Action> callInOnDrawGizmos;
 
@@ -196,12 +199,12 @@ public class ClimbingSystem : MonoBehaviour {
             
             if (isChangeGripPoint)
             {
-                float step = gripPoint.SetHandsPosition(forwardHand, backHand, 0.5f);
+                float step = gripPoint.SetHandsPosition(forwardHand, backHand, system.grippingCollider, 0.5f);
                 bool isFinished = 0.01f > step;
                 if (isFinished)
                 {
                     isChangeGripPoint = false;
-                    gripPoint.SetHandsPosition(forwardHand, backHand);
+                    gripPoint.SetHandsPosition(forwardHand, backHand, system.grippingCollider);
                 }
                 return;
             }
@@ -247,6 +250,7 @@ public class ClimbingSystem : MonoBehaviour {
                     Debug.Log("Ok Grip");
                     gripPoint.gameObject.layer = LayerMask.NameToLayer("GrippingPoint");
 
+                    system.grippingCollider = nearGripColi;
                     gripPoint = nearGripColi.gameObject.GetComponent<GripPoint>();
                     gripPoint.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
                     isChangeGripPoint = true;
@@ -286,6 +290,7 @@ public class ClimbingSystem : MonoBehaviour {
                     Debug.Log("Ok Grip");
                     gripPoint.gameObject.layer = LayerMask.NameToLayer("GrippingPoint");
 
+                    system.grippingCollider = nearGripColi;
                     gripPoint = nearGripColi.gameObject.GetComponent<GripPoint>();
                     gripPoint.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
                     isChangeGripPoint = true;
