@@ -979,7 +979,7 @@ MonoBehaviour:
   rightHand: {fileID: 1700947153}
   garpAncharBase: {fileID: 391890070}
   gripAnchar: {fileID: 1957871728}
-  nearGrippable: {fileID: 0}
+  nearGrippable: {fileID: 554956406}
   armLength: 1
   handMovement: 0.5
   handMovementSpdFactor: 0.04
