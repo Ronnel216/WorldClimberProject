@@ -14,12 +14,24 @@ public class GripPoint : MonoBehaviour {
 
         transform.position = (edge[0] + edge[1]) / 2;
         transform.localScale = new Vector3((edge[0] - edge[1]).magnitude, radius, radius); // 仮
+
+        transform.rotation = Quaternion.FromToRotation(Vector3.right, edge[0] - edge[1]);  // 仮
                  
     }
 
     public Vector3 CalcMovement(Vector3 movement)
     {
-        return movement.normalized;    // 仮　実際はedgeを元に計算を行う
+        Vector3 grippingVec = Vector3.zero;
+
+        grippingVec = edge[0] - gameObject.transform.position;
+        if (Vector3.Dot(movement, grippingVec) > 0)
+            return grippingVec.normalized;
+
+        grippingVec = edge[1] - gameObject.transform.position;
+        if (Vector3.Dot(movement, grippingVec) > 0)
+            return grippingVec.normalized;
+
+        return Vector3.zero;
     }
 
     public float SetHandsPosition(GameObject forward, GameObject back, float lerp = 1.0f)
