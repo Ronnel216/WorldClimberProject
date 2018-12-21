@@ -5,7 +5,7 @@ using UnityEngine;
 public class ClimbingSystem : MonoBehaviour {
 
     [SerializeField]
-    GameObject gripTop;
+    GameObject gripTop = null;
     [SerializeField]
     GameObject gripBottom;
 
@@ -16,12 +16,12 @@ public class ClimbingSystem : MonoBehaviour {
     GameObject rightHand;
 
     [SerializeField]
-    GameObject garpAncharBase;
+    GameObject garpAncharBase = null;
     [SerializeField]
-    GameObject gripAnchar;
+    GameObject gripAnchar = null;
 
     [SerializeField]
-    SubCollider nearGrippable;
+    SubCollider nearGrippable = null;
 
     [SerializeField]
     float armLength = 1f;
@@ -33,6 +33,9 @@ public class ClimbingSystem : MonoBehaviour {
 
     [SerializeField]
     float handMovementSpdFactor = 0.03f;
+
+    [SerializeField]
+    float ableInputAreaForMovement = 0.0f;  // 移動入力の判定領域
 
     // 掴んでいる地形
     Collider grippingCollider;
@@ -57,8 +60,8 @@ public class ClimbingSystem : MonoBehaviour {
 
     class HandTrasControlCmd
     {
-        GameObject hand;
-        Vector3 target;
+        GameObject hand = null;
+        Vector3 target = Vector3.zero;
         float safeErrorDistance = Mathf.Epsilon;    // 許容誤差
 
         bool Execute(float step)
@@ -220,7 +223,7 @@ public class ClimbingSystem : MonoBehaviour {
             float maxHandToHand = system.armLength * 2 * 0.7f;         // X
             float minHandToHand = maxHandToHand - system.handMovement; // Y
 
-            var inputMovement = ClimberMethod.GetInputMovement();
+            var inputMovement = ClimberMethod.GetInputMovement3D();
 
             if (Input.GetKeyDown(KeyCode.UpArrow))
             {
@@ -303,16 +306,17 @@ public class ClimbingSystem : MonoBehaviour {
             switch (system.handMovementMode)
             {
                 case HandMovementMode.Advance:
-                    if (inputMovement.x > 0)
+                    if (inputMovement.x > system.ableInputAreaForMovement)
                     {
-
-                        ClimberMethod.SetHandForwardAndBack(ref forwardHand, ref backHand, gripPoint.GetEdge(Vector3.right));
+                        int[] indexes = gripPoint.GetEdgeFromCenter(Vector3.right);
+                        ClimberMethod.SetHandForwardAndBack(ref forwardHand, ref backHand, gripPoint.GetEdge(indexes[0]));
                         moveVec = gripPoint.CalcMovement(Vector3.right);
 
                     }
-                    else if (inputMovement.x < 0)
-                    {
-                        ClimberMethod.SetHandForwardAndBack(ref forwardHand, ref backHand, gripPoint.GetEdge(Vector3.left));
+                    else if (inputMovement.x < -system.ableInputAreaForMovement)
+                    {   
+                        int[] indexes = gripPoint.GetEdgeFromCenter(Vector3.left);
+                        ClimberMethod.SetHandForwardAndBack(ref forwardHand, ref backHand, gripPoint.GetEdge(indexes[0]));
                         moveVec = gripPoint.CalcMovement(Vector3.left);
                     }
                     else
@@ -332,17 +336,19 @@ public class ClimbingSystem : MonoBehaviour {
                     // 前方の手を進める
                     if (maxHandToHand > magnitudeHandToHand)
                     {
-                        var result = ClimberMethod.CalcLerpTranslation(
+                        var movement = ClimberMethod.CalcLerpTranslation(
                             moveVec.normalized,
                             magnitudeHandToHand,
                             system.handMovementSpdFactor);
-                        forwardHand.transform.Translate(result);
+                        movement = gripPoint.ClampHandsMovement(forwardHand.transform.position, movement);
+
+                        forwardHand.transform.Translate(movement);
                     }
                     break;
 
                 case HandMovementMode.Close:
                     // 前方の手を進める状態に遷移
-                    bool isInputMovement = inputMovement.x > 0 || inputMovement.x < 0;
+                    bool isInputMovement = inputMovement.x > system.ableInputAreaForMovement || inputMovement.x < -system.ableInputAreaForMovement;
                     if (isInputMovement)
                     {
                         if (minHandToHand > magnitudeHandToHand)

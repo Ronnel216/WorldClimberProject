@@ -5,7 +5,7 @@ using UnityEngine;
 public class CameraController : MonoBehaviour {
 
     [SerializeField]
-    GameObject target;
+    GameObject target = null; // クラス名を取得したい
 
     [SerializeField]
     float distanceToTarget = 5.0f;
@@ -27,6 +27,9 @@ public class CameraController : MonoBehaviour {
     [SerializeField]
     float limitControlSpringPower = 1.0f;
 
+    // カメラの向き
+    public static Quaternion direction;
+
     //SphereMover spheremover;
 
     // Use this for initialization
@@ -36,17 +39,19 @@ public class CameraController : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+        direction = gameObject.transform.rotation;
+
         float x = .0f;
         float y = .0f;
-        if (Input.GetKey(KeyCode.RightArrow))
+        if (Input.GetKey(KeyCode.D))
             x = 1.0f;
-        else if (Input.GetKey(KeyCode.LeftArrow))
+        else if (Input.GetKey(KeyCode.A))
             x = -1.0f;
-        if (Input.GetKey(KeyCode.UpArrow))
+        if (Input.GetKey(KeyCode.W))
             y = 1.0f;
-        else if (Input.GetKey(KeyCode.DownArrow))
+        else if (Input.GetKey(KeyCode.S))
             y = -1.0f;
-
+       
         var selfPosOffset = (transform.position - target.transform.position).normalized;
         selfPosOffset *= distanceToTarget;
         selfPosOffset = CalcCameraOffset(selfPosOffset, x, y, maxCameraSpd);
@@ -58,7 +63,6 @@ public class CameraController : MonoBehaviour {
             factor *= limitControlSpringPower;
             factor = Mathf.Min(factor, 1.0f);
             factor *= factor;
-            Debug.Log(factor);
             float springSpd = maxCameraSpd * factor;
             selfPosOffset = CalcCameraOffset(selfPosOffset, 0, selfPosOffset.y > 0 ? -1 : 1, springSpd);
         }

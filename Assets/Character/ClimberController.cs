@@ -7,16 +7,16 @@ using CallBackFuncType = System.Action<HitMessageSender, UnityEngine.Collision>;
 public class ClimberController : MonoBehaviour {
 
     [SerializeField]
-    float powerOfJumping;
+    float powerOfJumping = 0.0f;
 
     [SerializeField]
-    float powerOfClimbing;
+    float powerOfClimbing = 0.0f;
 
     [SerializeField]
-    float powerOfGriping;
+    float powerOfGriping = 0.0f;
 
     [SerializeField]
-    GameObject particleSystem;
+    GameObject particle = null;
 
     [System.Serializable]
     public struct BodyParts
@@ -31,7 +31,7 @@ public class ClimberController : MonoBehaviour {
     }
 
     [SerializeField]
-    BodyParts actor;
+    BodyParts actor = new BodyParts();
 
     // 条件が被らないようにすること (例　壁に触れている　と　壁に捕まっている)
     enum StateFlag
@@ -91,7 +91,7 @@ public class ClimberController : MonoBehaviour {
         return; //仮
         // 指定ビットを立てる
         state |= StateFlag.IsTouchingWall;
-        particleSystem.GetComponent<ParticleSystem>().Play();
+        particle.GetComponent<ParticleSystem>().Play();
 
     }
 
@@ -101,8 +101,8 @@ public class ClimberController : MonoBehaviour {
         return; //仮
         Debug.Log(sender.info[0] + " : TouchWallStay");
 
-        particleSystem.transform.position = collision.contacts[0].point;
-        particleSystem.transform.LookAt(collision.contacts[0].point + collision.contacts[0].normal);
+        particle.transform.position = collision.contacts[0].point;
+        particle.transform.LookAt(collision.contacts[0].point + collision.contacts[0].normal);
         wallNoraml = collision.contacts[0].normal;
         // 掴んでいる時は落ちない
         //rigid.velocity = new Vector3(rigid.velocity.x, rigid.velocity.y * 0.1f, rigid.velocity.z);
@@ -117,7 +117,7 @@ public class ClimberController : MonoBehaviour {
 
         // 指定ビットをおろす
         state &= ~StateFlag.IsTouchingWall;
-        particleSystem.GetComponent<ParticleSystem>().Stop();
+        particle.GetComponent<ParticleSystem>().Stop();
 
     }
 

@@ -6,13 +6,13 @@ public class ClimberController2 : MonoBehaviour {
 
 
     [SerializeField]
-    float powerOfJumping;
+    float powerOfJumping = 0.0f;
 
     [SerializeField]
-    float powerOfClimbing;
+    float powerOfClimbing = 0.0f;
 
     [SerializeField]
-    float powerOfGriping;
+    float powerOfGriping = 0.0f;
 
     // 条件が被らないようにすること (例　壁に触れている　と　壁に捕まっている)
     enum StateFlag

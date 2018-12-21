@@ -38,6 +38,13 @@ static public class ClimberMethod
         return result;
     }
 
+    static public Vector2 GetInputMovement3D()
+    {
+        Vector3 movement = GetInputMovement();
+        movement = CameraController.direction * movement;
+        return movement;
+    }
+
     // 進方向の手をforwardと定義する
     static public void SetHandForwardAndBack(ref GameObject forwardHand, ref GameObject backHand, Vector3 target = new Vector3())
     {

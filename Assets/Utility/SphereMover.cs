@@ -10,7 +10,7 @@ public class SphereMover : MonoBehaviour {
 
     // 天球の中心からこのオブジェクトまでの距離
     [SerializeField]
-    float distance;
+    float distance = 0f;
 
     // 一メートルあたりのラジアン(回転角)
     float radianPerMeter;

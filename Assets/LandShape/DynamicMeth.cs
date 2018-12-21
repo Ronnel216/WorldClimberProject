@@ -93,7 +93,7 @@ public class DynamicMeth : MonoBehaviour {
     /// </summary>
     private void CheckSetting()
     {
-        string errMsg = "";
+        //string errMsg = "";
         //// 軸となる頂点は1つ以上必要
         //if (nodeList.Count < 1) errMsg =
         //        "Need Node : Num > 0\n";

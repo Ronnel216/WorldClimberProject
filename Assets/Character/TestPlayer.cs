@@ -5,19 +5,19 @@ using UnityEngine;
 public class TestPlayer : MonoBehaviour {
 
     [SerializeField]
-    float powerOfJumping;
+    float powerOfJumping = 0.0f;
 
     [SerializeField]
-    float powerOfClimbing;
+    float powerOfClimbing = 0f;
 
     [SerializeField]
-    float powerOfGriping;
+    float powerOfGriping = 0f;
 
     [SerializeField]
-    GameObject core;
+    GameObject core = null;
 
     [SerializeField]
-    GameObject particleSystem;
+    GameObject particle = null;
 
     // 条件が被らないようにすること (例　壁に触れている　と　壁に捕まっている)
     enum StateFlag
@@ -128,7 +128,7 @@ public class TestPlayer : MonoBehaviour {
     {
         // 指定ビットを立てる
         state |= StateFlag.IsTouchingWall;
-        particleSystem.GetComponent<ParticleSystem>().Play();
+        particle.GetComponent<ParticleSystem>().Play();
     }
 
     private void OnCollisionStay(Collision collision)
@@ -140,8 +140,8 @@ public class TestPlayer : MonoBehaviour {
             totalVec += contact.normal;
         wallNoraml = totalVec /= collision.contacts.Length;  // OnCollisionStayを通る条件として接触していることは確実なので 0除算はあり得ない
 
-        particleSystem.transform.position = collision.contacts[0].point;
-        particleSystem.transform.LookAt(collision.contacts[0].point + collision.contacts[0].normal);
+        particle.transform.position = collision.contacts[0].point;
+        particle.transform.LookAt(collision.contacts[0].point + collision.contacts[0].normal);
 
         // 掴んでいる時は落ちない
         //rigid.velocity = new Vector3(rigid.velocity.x, rigid.velocity.y * 0.1f, rigid.velocity.z);
@@ -151,7 +151,7 @@ public class TestPlayer : MonoBehaviour {
     {
         // 指定ビットをおろす
         state &= ~StateFlag.IsTouchingWall;
-        particleSystem.GetComponent<ParticleSystem>().Stop();
+        particle.GetComponent<ParticleSystem>().Stop();
 
     }
 }
