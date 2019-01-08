@@ -65,8 +65,15 @@ public class GripPoint : MonoBehaviour {
             result[i] = Vector3.Lerp(hands[i].transform.position, target[i], lerp);
         }
 
+        // 位置の設定
         hands[0].transform.position = result[0];
         hands[1].transform.position = result[1];
+
+        // 角度の調整
+        foreach (var hand in hands)
+        {
+            hand.transform.rotation = ClimberMethod.CalcRotationXZ(edges[0], edges[1]);
+        }
 
         float totalSqr = 0.0f;
         for (var i = 0; i < 2; i++)

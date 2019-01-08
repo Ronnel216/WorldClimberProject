@@ -45,6 +45,13 @@ static public class ClimberMethod
         return movement;
     }
 
+    static public Quaternion CalcRotationXZ(Vector3 start, Vector3 end)
+    {
+        var vec = end - start;
+        vec.y = 0f;
+        return Quaternion.FromToRotation(Vector3.left, vec);
+    }
+
     // 進方向の手をforwardと定義する
     static public void SetHandForwardAndBack(ref GameObject forwardHand, ref GameObject backHand, Vector3 target = new Vector3())
     {

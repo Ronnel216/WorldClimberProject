@@ -184,10 +184,8 @@ public class ClimbingSystem : MonoBehaviour {
             var handsPos = ClimberMethod.GetHandsPosition(system.rightHand, system.leftHand);
 
             // 崖つかまり時の　アンカー設定
-            var ancharRigid = system.garpAncharBase.GetComponent<Rigidbody>();
-            var handToHand = (handsPos[1] - handsPos[0]);
-            handToHand.y = 0f;  // xz平面のみ考慮            
-            Quaternion rotation = Quaternion.FromToRotation(Vector3.left, handToHand);
+            var ancharRigid = system.garpAncharBase.GetComponent<Rigidbody>();            
+            Quaternion rotation = ClimberMethod.CalcRotationXZ(handsPos[0], handsPos[1]);
             ClimberMethod.SetGrippingAnchar(ancharRigid, (handsPos[0] + handsPos[1]) / 2, rotation);
 
             // アンカーの状態を反映する
@@ -342,7 +340,7 @@ public class ClimbingSystem : MonoBehaviour {
                             system.handMovementSpdFactor);
                         movement = gripPoint.ClampHandsMovement(forwardHand.transform.position, movement);
 
-                        forwardHand.transform.Translate(movement);
+                        forwardHand.transform.Translate(movement, Space.World);
                     }
                     break;
 
@@ -368,7 +366,7 @@ public class ClimbingSystem : MonoBehaviour {
                             moveVec.normalized,
                             magnitudeHandToHand - limit,
                             system.handMovementSpdFactor);
-                        backHand.transform.Translate(result);
+                        backHand.transform.Translate(result, Space.World);
                     }
                     break;
 
