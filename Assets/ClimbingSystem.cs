@@ -91,7 +91,7 @@ public class ClimbingSystem : MonoBehaviour {
         handMovementMode = HandMovementMode.Close;
 
         // 進む方向の手を定義する
-        ClimberMethod.SetHandForwardAndBack(ref rightHand, ref leftHand);
+        ClimberMethod.SetHandForwardAndBack(ref rightHand, ref leftHand, Vector3.right);
 
         // 仮
         state = new GrippingWallState();
@@ -225,26 +225,7 @@ public class ClimbingSystem : MonoBehaviour {
 
             if (Input.GetKeyDown(KeyCode.UpArrow))
             {
-                Vector3 movement = Vector3.up;
-
-                float minDistanceSqr = float.MaxValue;
-                Collider nearGripColi = null;
-                Vector3 basePos = system.nearGrippable.transform.position;
-                foreach (var collider in system.nearGrippable.Colliders)
-                {
-                    Vector3 point = collider.ClosestPoint(basePos + movement);
-
-                    // 移動入力方向に存在しない
-                    if (Vector3.Dot(point - basePos, movement) <= 0) continue;
-
-                    float distanceSqr = (point - basePos).sqrMagnitude;
-                    if (minDistanceSqr > distanceSqr)
-                    {
-                        minDistanceSqr = distanceSqr;
-                        nearGripColi = collider;
-                    }
-
-                }
+                var nearGripColi = ClimberMethod.CheckGripPoint(Vector3.up, system.nearGrippable);                
 
                 if (nearGripColi != null)
                 {
@@ -266,25 +247,7 @@ public class ClimbingSystem : MonoBehaviour {
 
             if (Input.GetKeyDown(KeyCode.DownArrow))
             {
-                Vector3 movement = Vector3.down;
-                float minDistanceSqr = float.MaxValue;
-                Collider nearGripColi = null;
-                Vector3 basePos = system.nearGrippable.transform.position;
-                foreach (var collider in system.nearGrippable.Colliders)
-                {
-                    Vector3 point = collider.ClosestPoint(basePos + movement);
-
-                    // 移動入力方向に存在しない
-                    if (Vector3.Dot(point - basePos, movement) <= 0) continue;
-
-                    float distanceSqr = (point - basePos).sqrMagnitude;
-                    if (minDistanceSqr > distanceSqr)
-                    {
-                        minDistanceSqr = distanceSqr;
-                        nearGripColi = collider;
-                    }
-                                        
-                }
+                var nearGripColi = ClimberMethod.CheckGripPoint(Vector3.down, system.nearGrippable);
 
                 if (nearGripColi != null)
                 {
@@ -304,18 +267,13 @@ public class ClimbingSystem : MonoBehaviour {
             switch (system.handMovementMode)
             {
                 case HandMovementMode.Advance:
-                    if (inputMovement.x > system.ableInputAreaForMovement)
+                    // 移動方向を求める
+                    if (inputMovement.x != 0)
                     {
-                        int[] indexes = gripPoint.GetEdgeFromCenter(Vector3.right);
-                        ClimberMethod.SetHandForwardAndBack(ref forwardHand, ref backHand, gripPoint.GetEdge(indexes[0]));
-                        moveVec = gripPoint.CalcMovement(Vector3.right);
-
-                    }
-                    else if (inputMovement.x < -system.ableInputAreaForMovement)
-                    {   
-                        int[] indexes = gripPoint.GetEdgeFromCenter(Vector3.left);
-                        ClimberMethod.SetHandForwardAndBack(ref forwardHand, ref backHand, gripPoint.GetEdge(indexes[0]));
-                        moveVec = gripPoint.CalcMovement(Vector3.left);
+                        Vector3 inputMovementXZ = ClimberMethod.ConvertVec2ToVec3XZ(inputMovement);
+                        var edge = gripPoint.GetEdgeFromDirection(inputMovementXZ);
+                        ClimberMethod.SetHandForwardAndBack(ref forwardHand, ref backHand, edge);
+                        moveVec = gripPoint.CalcMoveDirction(inputMovementXZ);
                     }
                     else
                     {
@@ -345,10 +303,13 @@ public class ClimbingSystem : MonoBehaviour {
                     break;
 
                 case HandMovementMode.Close:
-                    // 前方の手を進める状態に遷移
-                    bool isInputMovement = inputMovement.x > system.ableInputAreaForMovement || inputMovement.x < -system.ableInputAreaForMovement;
+                    // 移動入力値が存在する
+                    bool isInputMovement = inputMovement.x > system.ableInputAreaForMovement || 
+                        inputMovement.x < -system.ableInputAreaForMovement;
+
                     if (isInputMovement)
                     {
+                        // 後ろの手を前の手に限界まで近づけたら遷移
                         if (minHandToHand > magnitudeHandToHand)
                         {
                             system.handMovementMode = HandMovementMode.Advance;

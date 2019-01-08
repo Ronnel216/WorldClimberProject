@@ -15,6 +15,13 @@ static public class ClimberMethod
         b = c;
     }
 
+    static public Vector3 ConvertVec2ToVec3XZ(Vector2 vec)
+    {
+        Vector3 result = vec;
+        Swap(ref result.y, ref result.z);
+        return result;
+    }
+
     // 専用 ---------------
 
     static public Vector3 CalcLerpTranslation(Vector3 direction, float length,float step)
@@ -45,6 +52,33 @@ static public class ClimberMethod
         return movement;
     }
 
+    // 移動入力方向の掴める場所を取得する
+    static public Collider CheckGripPoint(Vector3 movement, SubCollider grippable)
+    {
+        float minDistanceSqr = float.MaxValue;
+        Collider nearGripColi = null;
+        Vector3 basePos = grippable.transform.position;
+        foreach (var collider in grippable.Colliders)
+        {
+            Vector3 point = collider.ClosestPoint(basePos + movement);
+
+            // 移動入力方向に存在しない
+            if (Vector3.Dot(point - basePos, movement) <= 0) continue;
+
+            float distanceSqr = (point - basePos).sqrMagnitude;
+            if (minDistanceSqr > distanceSqr)
+            {
+                minDistanceSqr = distanceSqr;
+                nearGripColi = collider;
+            }
+
+        }
+
+        return nearGripColi;
+
+    }
+
+    // 二つの座標から回転姿勢を求める
     static public Quaternion CalcRotationXZ(Vector3 start, Vector3 end)
     {
         var vec = end - start;
@@ -52,8 +86,14 @@ static public class ClimberMethod
         return Quaternion.FromToRotation(Vector3.left, vec);
     }
 
+    static public Quaternion CalcRotation(Vector3 start, Vector3 end)
+    {
+        var vec = end - start;
+        return Quaternion.FromToRotation(Vector3.left, vec);
+    }
+
     // 進方向の手をforwardと定義する
-    static public void SetHandForwardAndBack(ref GameObject forwardHand, ref GameObject backHand, Vector3 target = new Vector3())
+    static public void SetHandForwardAndBack(ref GameObject forwardHand, ref GameObject backHand, Vector3 target)
     {
         if ((forwardHand.transform.position - target).sqrMagnitude <
             (backHand.transform.position - target).sqrMagnitude)

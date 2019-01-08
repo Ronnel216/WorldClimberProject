@@ -18,7 +18,8 @@ public class GripPoint : MonoBehaviour {
 
     }
 
-    public Vector3 CalcMovement(Vector3 movement)
+    // 移動方向を計算する
+    public Vector3 CalcMoveDirction(Vector3 movement)
     {
         Vector3 grippingVec = Vector3.zero;
 
@@ -72,7 +73,7 @@ public class GripPoint : MonoBehaviour {
         // 角度の調整
         foreach (var hand in hands)
         {
-            hand.transform.rotation = ClimberMethod.CalcRotationXZ(edges[0], edges[1]);
+            hand.transform.rotation = ClimberMethod.CalcRotation(edges[0], edges[1]);
         }
 
         float totalSqr = 0.0f;
@@ -82,11 +83,7 @@ public class GripPoint : MonoBehaviour {
         return totalSqr;
     }
 
-    /// <summary>
-    /// 近い端を取得する
-    /// </summary>
-    /// <param name="movement"></param>
-    /// <returns></returns>
+    // 近い端を取得する
     public int[] GetEdgeFromCenter(Vector3 offset)
     {
         float d0 = ((edges[0] - edges[1]) - offset).sqrMagnitude;
@@ -108,6 +105,12 @@ public class GripPoint : MonoBehaviour {
     public Vector3 GetEdge(int index)
     {
         return edges[index];
+    }
+
+    public Vector3 GetEdgeFromDirection(Vector3 direction)
+    {
+        int[] indexes = GetEdgeFromCenter(direction);
+        return GetEdge(indexes[0]);
     }
 
     Vector3 GetEdgesCenter()
