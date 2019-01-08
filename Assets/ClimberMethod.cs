@@ -63,9 +63,10 @@ static public class ClimberMethod
         return new Vector3[]{ forwardHand.transform.position, backHand.transform.position };
     }
 
-    static public void SetGrippingAnchar(Rigidbody connectedRigid, Vector3 position)
+    static public void SetGrippingAnchar(Rigidbody connectedRigid, Vector3 position, Quaternion rotation)
     {
         connectedRigid.transform.position = position;
+        connectedRigid.transform.rotation = rotation;
     }
 
     static public void ApplyGrippingAnchar(Rigidbody rigid, Rigidbody anchar)

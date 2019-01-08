@@ -184,15 +184,15 @@ public class ClimbingSystem : MonoBehaviour {
             var handsPos = ClimberMethod.GetHandsPosition(system.rightHand, system.leftHand);
 
             // 崖つかまり時の　アンカー設定
-            ClimberMethod.SetGrippingAnchar(system.garpAncharBase.GetComponent<Rigidbody>(), (handsPos[0] + handsPos[1]) / 2);
+            var ancharRigid = system.garpAncharBase.GetComponent<Rigidbody>();
+            var handToHand = (handsPos[1] - handsPos[0]);
+            handToHand.y = 0f;  // xz平面のみ考慮            
+            Quaternion rotation = Quaternion.FromToRotation(Vector3.left, handToHand);
+            ClimberMethod.SetGrippingAnchar(ancharRigid, (handsPos[0] + handsPos[1]) / 2, rotation);
 
             // アンカーの状態を反映する
             ClimberMethod.ApplyGrippingAnchar(system.rigid, system.gripAnchar.GetComponent<Rigidbody>());
 
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                Debug.Log("Display");
-            }
         }
 
         // Update is called once per frame
