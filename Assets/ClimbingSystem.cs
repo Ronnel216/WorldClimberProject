@@ -159,7 +159,7 @@ public class ClimbingSystem : MonoBehaviour {
         GameObject forwardHand; // 進行方向の手
         GameObject backHand;    // 進行方向と逆の手
 
-        GripPoint gripPoint;
+        GrippablePoint grippablePoint;
 
         CharacterJoint grippingJoint;
         private bool isChangeGripPoint;
@@ -168,7 +168,7 @@ public class ClimbingSystem : MonoBehaviour {
         public void Init(ClimbingSystem system)
         {
             // 掴んでいる地形
-            gripPoint = system.gripTop.GetComponent<GripPoint>();
+            grippablePoint = system.gripTop.GetComponent<GrippablePoint>();
 
             // 体を制御 -----
             grippingJoint = system.gripAnchar.GetComponent<CharacterJoint>();
@@ -195,17 +195,15 @@ public class ClimbingSystem : MonoBehaviour {
 
         // Update is called once per frame
         public void Update(ClimbingSystem system)
-        {
-            //if (isGrip == false) return;
-            
+        {      
             if (isChangeGripPoint)
             {
-                float step = gripPoint.SetHandsPosition(forwardHand, backHand, system.grippingCollider, 0.5f);
-                bool isFinished = 0.01f > step;
+                float step = grippablePoint.SetHandsPosition(forwardHand, backHand, system.grippingCollider, 0.5f);
+                bool isFinished = 0.001f > step;
                 if (isFinished)
                 {
                     isChangeGripPoint = false;
-                    gripPoint.SetHandsPosition(forwardHand, backHand, system.grippingCollider);
+                    grippablePoint.SetHandsPosition(forwardHand, backHand, system.grippingCollider);
                 }
                 return;
             }
@@ -225,16 +223,16 @@ public class ClimbingSystem : MonoBehaviour {
 
             if (Input.GetKeyDown(KeyCode.UpArrow))
             {
-                var nearGripColi = ClimberMethod.CheckGripPoint(Vector3.up, system.nearGrippable);                
+                var nearGripColi = ClimberMethod.CheckGripPoint(Vector3.up, system.nearGrippable);             
 
                 if (nearGripColi != null)
                 {
                     Debug.Log("Ok Grip");
-                    gripPoint.gameObject.layer = LayerMask.NameToLayer("GrippingPoint");
+                    grippablePoint.gameObject.layer = LayerMask.NameToLayer("GrippingPoint");
 
                     system.grippingCollider = nearGripColi;
-                    gripPoint = nearGripColi.gameObject.GetComponent<GripPoint>();
-                    gripPoint.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
+                    grippablePoint = nearGripColi.gameObject.GetComponent<GrippablePoint>();
+                    grippablePoint.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
                     isChangeGripPoint = true;
                 }
             }
@@ -252,11 +250,11 @@ public class ClimbingSystem : MonoBehaviour {
                 if (nearGripColi != null)
                 {
                     Debug.Log("Ok Grip");
-                    gripPoint.gameObject.layer = LayerMask.NameToLayer("GrippingPoint");
+                    grippablePoint.gameObject.layer = LayerMask.NameToLayer("GrippingPoint");
 
                     system.grippingCollider = nearGripColi;
-                    gripPoint = nearGripColi.gameObject.GetComponent<GripPoint>();
-                    gripPoint.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
+                    grippablePoint = nearGripColi.gameObject.GetComponent<GrippablePoint>();
+                    grippablePoint.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
                     isChangeGripPoint = true;
                 }
 
@@ -271,9 +269,9 @@ public class ClimbingSystem : MonoBehaviour {
                     if (inputMovement.x != 0)
                     {
                         Vector3 inputMovementXZ = ClimberMethod.ConvertVec2ToVec3XZ(inputMovement);
-                        var edge = gripPoint.GetEdgeFromDirection(inputMovementXZ);
+                        var edge = grippablePoint.GetEdgeFromDirection(inputMovementXZ);
                         ClimberMethod.SetHandForwardAndBack(ref forwardHand, ref backHand, edge);
-                        moveVec = gripPoint.CalcMoveDirction(inputMovementXZ);
+                        moveVec = grippablePoint.CalcMoveDirction(inputMovementXZ);
                     }
                     else
                     {
@@ -296,7 +294,7 @@ public class ClimbingSystem : MonoBehaviour {
                             moveVec.normalized,
                             magnitudeHandToHand,
                             system.handMovementSpdFactor);
-                        movement = gripPoint.ClampHandsMovement(forwardHand.transform.position, movement);
+                        movement = grippablePoint.ClampHandsMovement(forwardHand.transform.position, movement);
 
                         forwardHand.transform.Translate(movement, Space.World);
                     }

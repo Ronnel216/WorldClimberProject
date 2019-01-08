@@ -77,7 +77,6 @@ static public class ClimberMethod
         return nearGripColi;
 
     }
-
     // 二つの座標から回転姿勢を求める
     static public Quaternion CalcRotationXZ(Vector3 start, Vector3 end)
     {

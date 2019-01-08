@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GripPoint : MonoBehaviour {
+public class GrippablePoint : MonoBehaviour {
 
     [SerializeField]
     Vector3[] edges = new Vector3[2];
