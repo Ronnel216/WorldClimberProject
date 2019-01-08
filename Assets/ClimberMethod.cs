@@ -77,6 +77,17 @@ static public class ClimberMethod
         return nearGripColi;
 
     }
+
+    static public Collider SetGrippablePoint(ref GrippablePoint currentGripping, Collider nextGrippingCollider)
+    {
+        Debug.Log("Ok Grip");
+        currentGripping.gameObject.layer = LayerMask.NameToLayer("GrippingPoint");
+
+        currentGripping = nextGrippingCollider.gameObject.GetComponent<GrippablePoint>();
+        currentGripping.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
+        return nextGrippingCollider;
+    }
+
     // 二つの座標から回転姿勢を求める
     static public Quaternion CalcRotationXZ(Vector3 start, Vector3 end)
     {

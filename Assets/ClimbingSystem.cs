@@ -55,6 +55,7 @@ public class ClimbingSystem : MonoBehaviour {
         Stay,
         Advance,
         Close,
+        Catch
     }
     HandMovementMode handMovementMode;
 
@@ -162,7 +163,6 @@ public class ClimbingSystem : MonoBehaviour {
         GrippablePoint grippablePoint;
 
         CharacterJoint grippingJoint;
-        private bool isChangeGripPoint;
 
         // Use this for initialization
         public void Init(ClimbingSystem system)
@@ -175,7 +175,6 @@ public class ClimbingSystem : MonoBehaviour {
             forwardHand = system.rightHand; backHand = system.leftHand;
             Vector3[] handsPos = ClimberMethod.GetHandsPosition(forwardHand, backHand);
 
-            isChangeGripPoint = false;
         }
 
         public void FixedUpdate(ClimbingSystem system)
@@ -196,18 +195,6 @@ public class ClimbingSystem : MonoBehaviour {
         // Update is called once per frame
         public void Update(ClimbingSystem system)
         {      
-            if (isChangeGripPoint)
-            {
-                float step = grippablePoint.SetHandsPosition(forwardHand, backHand, system.grippingCollider, 0.5f);
-                bool isFinished = 0.001f > step;
-                if (isFinished)
-                {
-                    isChangeGripPoint = false;
-                    grippablePoint.SetHandsPosition(forwardHand, backHand, system.grippingCollider);
-                }
-                return;
-            }
-
             float magnitudeHandToHand = (system.rightHand.transform.position - system.leftHand.transform.position).magnitude;
             /*
              * X = 手の長さ * 2 * 調整値, Y = X - 移動距離
@@ -221,27 +208,22 @@ public class ClimbingSystem : MonoBehaviour {
 
             var inputMovement = ClimberMethod.GetInputMovement3D();
 
+            // 掴んだ状態で移動できる範囲
+            system.callInOnDrawGizmos.Add(() =>
+            {
+                //Gizmos.DrawWireSphere(system.nearGrippable.transform.position);
+            });
+
             if (Input.GetKeyDown(KeyCode.UpArrow))
             {
                 var nearGripColi = ClimberMethod.CheckGripPoint(Vector3.up, system.nearGrippable);             
 
                 if (nearGripColi != null)
                 {
-                    Debug.Log("Ok Grip");
-                    grippablePoint.gameObject.layer = LayerMask.NameToLayer("GrippingPoint");
-
-                    system.grippingCollider = nearGripColi;
-                    grippablePoint = nearGripColi.gameObject.GetComponent<GrippablePoint>();
-                    grippablePoint.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
-                    isChangeGripPoint = true;
+                    system.grippingCollider = ClimberMethod.SetGrippablePoint(ref grippablePoint, nearGripColi);
+                    system.handMovementMode = HandMovementMode.Catch;
                 }
             }
-
-            // 掴んだ状態で移動できる範囲
-            system.callInOnDrawGizmos.Add(() =>
-            {
-                //Gizmos.DrawWireSphere(system.nearGrippable.transform.position);
-            });
 
             if (Input.GetKeyDown(KeyCode.DownArrow))
             {
@@ -249,21 +231,25 @@ public class ClimbingSystem : MonoBehaviour {
 
                 if (nearGripColi != null)
                 {
-                    Debug.Log("Ok Grip");
-                    grippablePoint.gameObject.layer = LayerMask.NameToLayer("GrippingPoint");
-
-                    system.grippingCollider = nearGripColi;
-                    grippablePoint = nearGripColi.gameObject.GetComponent<GrippablePoint>();
-                    grippablePoint.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
-                    isChangeGripPoint = true;
+                    system.grippingCollider = ClimberMethod.SetGrippablePoint(ref grippablePoint, nearGripColi);
+                    system.handMovementMode = HandMovementMode.Catch;
                 }
-
             }
 
             Vector3 moveVec = Vector3.zero;
             //GameObject forwardHand = null;
             switch (system.handMovementMode)
             {
+                case HandMovementMode.Catch:
+                    float step = grippablePoint.SetHandsPosition(forwardHand, backHand, system.grippingCollider, 0.5f);
+                    bool isFinished = 0.001f > step;
+                    if (isFinished)
+                    {
+                        grippablePoint.SetHandsPosition(forwardHand, backHand, system.grippingCollider);
+                        system.handMovementMode = HandMovementMode.Advance;
+                    }
+                    break;
+
                 case HandMovementMode.Advance:
                     // 移動方向を求める
                     if (inputMovement.x != 0)
