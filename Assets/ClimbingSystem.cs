@@ -262,14 +262,11 @@ public class ClimbingSystem : MonoBehaviour {
 
                 case HandMovementMode.Advance:
                     // 移動方向を求める
-                    bool canMoving = true;
-                    if (inputMovementMagni > 0.0f)
+                    if (inputMovementMagni > Mathf.Epsilon)
                     {
-                        Vector3 inputMovementXZ = inputMovement;
-                        var edge = grippablePoint.GetEdgeFromDirection(inputMovementXZ);
+                        var edge = grippablePoint.GetEdgeFromDirection(inputMovement);
                         ClimberMethod.SetHandForwardAndBack(ref forwardHand, ref backHand, edge);
-                        moveVec = grippablePoint.CalcMoveDirction(inputMovementXZ);
-                        canMoving = Vector3.Dot(moveVec, inputMovement) > system.level.ableInputMovementLimitCos;
+                        moveVec = grippablePoint.CalcMoveDirction(inputMovement);
                     }
                     else
                     {
@@ -278,6 +275,7 @@ public class ClimbingSystem : MonoBehaviour {
                         break;
                     }
 
+                    bool canMoving = Vector3.Dot(moveVec, inputMovement) > system.level.ableInputMovementLimitCos;
                     if (canMoving == false) break;  
 
                     // 手同士の距離が最大を超えた時　後方の手を近づける状態に遷移
@@ -302,8 +300,7 @@ public class ClimbingSystem : MonoBehaviour {
 
                 case HandMovementMode.Close:
                     // 移動入力値が存在する
-                    bool isInputMovement = inputMovementMagni > 0.0f;
-
+                    bool isInputMovement = inputMovementMagni > Mathf.Epsilon;
                     if (isInputMovement)
                     {
                         // 後ろの手を前の手に限界まで近づけたら遷移
