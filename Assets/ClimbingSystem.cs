@@ -4,6 +4,16 @@ using UnityEngine;
 
 public class ClimbingSystem : MonoBehaviour {
 
+    [System.Serializable]
+    class LevelDesign
+    {
+        // 入力成分を無視する範囲
+        public float inputMovementFreeLimit = 0.2f;
+
+    }
+    [SerializeField]
+    LevelDesign level;
+
     [SerializeField]
     GameObject gripTop = null;
     [SerializeField]
@@ -195,7 +205,6 @@ public class ClimbingSystem : MonoBehaviour {
         // Update is called once per frame
         public void Update(ClimbingSystem system)
         {      
-            float magnitudeHandToHand = (system.rightHand.transform.position - system.leftHand.transform.position).magnitude;
             /*
              * X = 手の長さ * 2 * 調整値, Y = X - 移動距離
              * それぞれの状態に遷移する距離として近づける距離をXとして進める距離をYとして　X > 移動距離 > Y
@@ -205,6 +214,7 @@ public class ClimbingSystem : MonoBehaviour {
             //canAdvanceStep = magnitudeHandToHand < handMovement;
             float maxHandToHand = system.armLength * 2 * 0.7f;         // X
             float minHandToHand = maxHandToHand - system.handMovement; // Y
+            float magnitudeHandToHand = (system.rightHand.transform.position - system.leftHand.transform.position).magnitude;
 
             var inputMovement = ClimberMethod.GetInputMovement3D();
 
@@ -242,7 +252,7 @@ public class ClimbingSystem : MonoBehaviour {
             {
                 case HandMovementMode.Catch:
                     float step = grippablePoint.SetHandsPosition(forwardHand, backHand, system.grippingCollider, 0.5f);
-                    bool isFinished = 0.001f > step;
+                    bool isFinished = 0.0001f > step;
                     if (isFinished)
                     {
                         grippablePoint.SetHandsPosition(forwardHand, backHand, system.grippingCollider);
@@ -251,10 +261,10 @@ public class ClimbingSystem : MonoBehaviour {
                     break;
 
                 case HandMovementMode.Advance:
-                    // 移動方向を求める
-                    if (inputMovement.x != 0)
+                    // 移動方向を求める                    
+                    if (inputMovement.sqrMagnitude > system.level.inputMovementFreeLimit)
                     {
-                        Vector3 inputMovementXZ = ClimberMethod.ConvertVec2ToVec3XZ(inputMovement);
+                        Vector3 inputMovementXZ = inputMovement;
                         var edge = grippablePoint.GetEdgeFromDirection(inputMovementXZ);
                         ClimberMethod.SetHandForwardAndBack(ref forwardHand, ref backHand, edge);
                         moveVec = grippablePoint.CalcMoveDirction(inputMovementXZ);

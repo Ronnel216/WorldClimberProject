@@ -18,6 +18,16 @@ public class GrippablePoint : MonoBehaviour {
 
     }
 
+    public Quaternion GetEdgeDirection()
+    {
+        return Quaternion.FromToRotation(Vector3.left, (edges[1] - edges[1]));
+    }
+
+    //public Vector3 GetEdgeDirection()
+    //{
+    //    return Vector3.Cross(Vector3.up, (edges[1] - edges[0]));
+    //}
+
     // 移動方向を計算する
     public Vector3 CalcMoveDirction(Vector3 movement)
     {

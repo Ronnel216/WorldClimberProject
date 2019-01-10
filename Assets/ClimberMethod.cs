@@ -45,10 +45,11 @@ static public class ClimberMethod
         return result;
     }
 
-    static public Vector2 GetInputMovement3D()
+    static public Vector3 GetInputMovement3D()
     {
         Vector3 movement = GetInputMovement();
         movement = CameraController.direction * movement;
+        Debug.Log(movement);
         return movement;
     }
 
