@@ -1617,6 +1617,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 893d178f9c9093b4c8be09c27277d8cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  level:
+    inputMovementFreeLimit: 0.2
+    armLength: 1
+    handMovement: 0.65
+    handMovementSpdFactor: 0.05
+    ableInputAreaForMovement: 0.1
   gripTop: {fileID: 1407777588}
   gripBottom: {fileID: 1185530130}
   leftHand: {fileID: 1338139766}
@@ -1624,10 +1630,6 @@ MonoBehaviour:
   garpAncharBase: {fileID: 391890070}
   gripAnchar: {fileID: 1957871728}
   nearGrippable: {fileID: 554956406}
-  armLength: 1
-  handMovement: 0.5
-  handMovementSpdFactor: 0.04
-  ableInputAreaForMovement: 0.1
 --- !u!1 &1659018308
 GameObject:
   m_ObjectHideFlags: 0

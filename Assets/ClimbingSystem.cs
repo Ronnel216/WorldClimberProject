@@ -7,8 +7,19 @@ public class ClimbingSystem : MonoBehaviour {
     [System.Serializable]
     class LevelDesign
     {
-        // 入力成分を無視する範囲
-        public float inputMovementFreeLimit = 0.2f;
+        // 手の長さ
+        public float armLength = 1f;
+
+        // 手の移動力
+        public float handMovement = 0.5f;
+
+        // 手の移動速度係数
+        [Range(0f, 1f)]
+        public float handMovementSpdFactor = 0.04f;
+
+        // 移動入力の判定領域
+        [Range(0f, 1f)]
+        public float ableInputAreaForMovement = 0.2f;
 
     }
     [SerializeField]
@@ -33,19 +44,7 @@ public class ClimbingSystem : MonoBehaviour {
     [SerializeField]
     SubCollider nearGrippable = null;
 
-    [SerializeField]
-    float armLength = 1f;
-
     Rigidbody rigid;
-
-    [SerializeField]
-    float handMovement = 0.1f;
-
-    [SerializeField]
-    float handMovementSpdFactor = 0.03f;
-
-    [SerializeField]
-    float ableInputAreaForMovement = 0.0f;  // 移動入力の判定領域
 
     // 掴んでいる地形
     Collider grippingCollider;
@@ -212,8 +211,8 @@ public class ClimbingSystem : MonoBehaviour {
              * 反対の手を近づける    ・・・ 距離がX以上で遷移 または　入力が無いときに遷移
              */
             //canAdvanceStep = magnitudeHandToHand < handMovement;
-            float maxHandToHand = system.armLength * 2 * 0.7f;         // X
-            float minHandToHand = maxHandToHand - system.handMovement; // Y
+            float maxHandToHand = system.level.armLength * 2 * 0.7f;         // X
+            float minHandToHand = maxHandToHand - system.level.handMovement; // Y
             float magnitudeHandToHand = (system.rightHand.transform.position - system.leftHand.transform.position).magnitude;
 
             var inputMovement = ClimberMethod.GetInputMovement3D();
@@ -262,7 +261,7 @@ public class ClimbingSystem : MonoBehaviour {
 
                 case HandMovementMode.Advance:
                     // 移動方向を求める                    
-                    if (inputMovement.sqrMagnitude > system.level.inputMovementFreeLimit)
+                    if (inputMovement.sqrMagnitude > system.level.ableInputAreaForMovement)
                     {
                         Vector3 inputMovementXZ = inputMovement;
                         var edge = grippablePoint.GetEdgeFromDirection(inputMovementXZ);
@@ -289,7 +288,7 @@ public class ClimbingSystem : MonoBehaviour {
                         var movement = ClimberMethod.CalcLerpTranslation(
                             moveVec.normalized,
                             magnitudeHandToHand,
-                            system.handMovementSpdFactor);
+                            system.level.handMovementSpdFactor);
                         movement = grippablePoint.ClampHandsMovement(forwardHand.transform.position, movement);
 
                         forwardHand.transform.Translate(movement, Space.World);
@@ -298,8 +297,8 @@ public class ClimbingSystem : MonoBehaviour {
 
                 case HandMovementMode.Close:
                     // 移動入力値が存在する
-                    bool isInputMovement = inputMovement.x > system.ableInputAreaForMovement || 
-                        inputMovement.x < -system.ableInputAreaForMovement;
+                    bool isInputMovement = inputMovement.x > system.level.ableInputAreaForMovement || 
+                        inputMovement.x < -system.level.ableInputAreaForMovement;
 
                     if (isInputMovement)
                     {
@@ -320,7 +319,7 @@ public class ClimbingSystem : MonoBehaviour {
                         var result = ClimberMethod.CalcLerpTranslation(
                             moveVec.normalized,
                             magnitudeHandToHand - limit,
-                            system.handMovementSpdFactor);
+                            system.level.handMovementSpdFactor);
                         backHand.transform.Translate(result, Space.World);
                     }
                     break;
