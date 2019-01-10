@@ -88,36 +88,36 @@ public class ClimberController : MonoBehaviour {
 
         state |= StateFlag.IsTouchingWall;
 
-        return; //仮
-        // 指定ビットを立てる
-        state |= StateFlag.IsTouchingWall;
-        particle.GetComponent<ParticleSystem>().Play();
+        //return; //仮
+        //// 指定ビットを立てる
+        //state |= StateFlag.IsTouchingWall;
+        //particle.GetComponent<ParticleSystem>().Play();
 
     }
 
     public void TouchWallStay(HitMessageSender sender, Collision collision)
     {
 
-        return; //仮
-        Debug.Log(sender.info[0] + " : TouchWallStay");
+        //return; //仮
+        //Debug.Log(sender.info[0] + " : TouchWallStay");
 
-        particle.transform.position = collision.contacts[0].point;
-        particle.transform.LookAt(collision.contacts[0].point + collision.contacts[0].normal);
-        wallNoraml = collision.contacts[0].normal;
-        // 掴んでいる時は落ちない
-        //rigid.velocity = new Vector3(rigid.velocity.x, rigid.velocity.y * 0.1f, rigid.velocity.z);
+        //particle.transform.position = collision.contacts[0].point;
+        //particle.transform.LookAt(collision.contacts[0].point + collision.contacts[0].normal);
+        //wallNoraml = collision.contacts[0].normal;
+        //// 掴んでいる時は落ちない
+        ////rigid.velocity = new Vector3(rigid.velocity.x, rigid.velocity.y * 0.1f, rigid.velocity.z);
 
     }
 
     public void TouchWallExit(HitMessageSender sender, Collision collision)
     {
 
-        return; //仮
-        Debug.Log(sender.info[0] + " : TouchWallExit");
+        //return; //仮
+        //Debug.Log(sender.info[0] + " : TouchWallExit");
 
-        // 指定ビットをおろす
-        state &= ~StateFlag.IsTouchingWall;
-        particle.GetComponent<ParticleSystem>().Stop();
+        //// 指定ビットをおろす
+        //state &= ~StateFlag.IsTouchingWall;
+        //particle.GetComponent<ParticleSystem>().Stop();
 
     }
 
@@ -168,26 +168,26 @@ public class ClimberController : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-        return; // 仮
-        /*
-        壁触れ時は常時　壁掴み状態
-        特定のボタンで壁から手を放す (たぶんなしにする　Aimジャンプできるので)
-         */
+        //return; // 仮
+        ///*
+        //壁触れ時は常時　壁掴み状態
+        //特定のボタンで壁から手を放す (たぶんなしにする　Aimジャンプできるので)
+        // */
 
-        // 重力を一時的に有効にする
-        rigid.useGravity = true;
+        //// 重力を一時的に有効にする
+        //rigid.useGravity = true;
 
-        // 操作感を合わせるためモード分けしないようにした
+        //// 操作感を合わせるためモード分けしないようにした
 
-        if ((state & StateFlag.IsTouchingWall) == 0) return;
+        //if ((state & StateFlag.IsTouchingWall) == 0) return;
 
-        // 壁に捕まる
-        rigid.useGravity = false;
-        rigid.AddForce(-wallNoraml * powerOfGriping, ForceMode.Force);
+        //// 壁に捕まる
+        //rigid.useGravity = false;
+        //rigid.AddForce(-wallNoraml * powerOfGriping, ForceMode.Force);
 
-        // 壁に捕まった状態での更新
-        UpdateGripingMovement();
-        UpdateJumpMovement();
+        //// 壁に捕まった状態での更新
+        //UpdateGripingMovement();
+        //UpdateJumpMovement();
 
     }
 
