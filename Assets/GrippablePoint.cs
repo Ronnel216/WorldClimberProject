@@ -94,15 +94,6 @@ public class GrippablePoint : MonoBehaviour {
     }
 
     // 近い端を取得する
-    public int[] GetEdgeFromCenter(Vector3 offset)
-    {
-        float d0 = ((edges[0] - edges[1]) - offset).sqrMagnitude;
-        float d1 = ((edges[1] - edges[0]) - offset).sqrMagnitude;
-
-        if (d0 < d1) return new int[]{ 0, 1};
-        return new int[] { 1, 0 };
-    }
-
     public int[] GetEdgeFromPos(Vector3 pos)
     {
         float d0 = (edges[0] - pos).sqrMagnitude;
@@ -119,7 +110,7 @@ public class GrippablePoint : MonoBehaviour {
 
     public Vector3 GetEdgeFromDirection(Vector3 direction)
     {
-        int[] indexes = GetEdgeFromCenter(direction);
+        int[] indexes = GetEdgeFromPos(GetEdgesCenter() + direction);
         return GetEdge(indexes[0]);
     }
 

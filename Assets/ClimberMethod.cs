@@ -49,7 +49,7 @@ static public class ClimberMethod
     {
         Vector3 movement = GetInputMovement();
         movement = CameraController.direction * movement;
-        Debug.Log(movement);
+        movement.Normalize();
         return movement;
     }
 

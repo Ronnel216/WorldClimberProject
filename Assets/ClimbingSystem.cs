@@ -19,7 +19,7 @@ public class ClimbingSystem : MonoBehaviour {
 
         // 移動入力の判定領域
         [Range(0f, 1f)]
-        public float ableInputAreaForMovement = 0.2f;
+        public float ableInputMovementLimitCos = 0.2f;
 
     }
     [SerializeField]
@@ -216,6 +216,7 @@ public class ClimbingSystem : MonoBehaviour {
             float magnitudeHandToHand = (system.rightHand.transform.position - system.leftHand.transform.position).magnitude;
 
             var inputMovement = ClimberMethod.GetInputMovement3D();
+            var inputMovementMagni = inputMovement.magnitude;
 
             // 掴んだ状態で移動できる範囲
             system.callInOnDrawGizmos.Add(() =>
@@ -260,13 +261,15 @@ public class ClimbingSystem : MonoBehaviour {
                     break;
 
                 case HandMovementMode.Advance:
-                    // 移動方向を求める                    
-                    if (inputMovement.sqrMagnitude > system.level.ableInputAreaForMovement)
+                    // 移動方向を求める
+                    bool canMoving = true;
+                    if (inputMovementMagni > 0.0f)
                     {
                         Vector3 inputMovementXZ = inputMovement;
                         var edge = grippablePoint.GetEdgeFromDirection(inputMovementXZ);
                         ClimberMethod.SetHandForwardAndBack(ref forwardHand, ref backHand, edge);
                         moveVec = grippablePoint.CalcMoveDirction(inputMovementXZ);
+                        canMoving = Vector3.Dot(moveVec, inputMovement) > system.level.ableInputMovementLimitCos;
                     }
                     else
                     {
@@ -274,6 +277,8 @@ public class ClimbingSystem : MonoBehaviour {
                         system.handMovementMode = HandMovementMode.Close;
                         break;
                     }
+
+                    if (canMoving == false) break;  
 
                     // 手同士の距離が最大を超えた時　後方の手を近づける状態に遷移
                     if (maxHandToHand < magnitudeHandToHand)
@@ -297,8 +302,7 @@ public class ClimbingSystem : MonoBehaviour {
 
                 case HandMovementMode.Close:
                     // 移動入力値が存在する
-                    bool isInputMovement = inputMovement.x > system.level.ableInputAreaForMovement || 
-                        inputMovement.x < -system.level.ableInputAreaForMovement;
+                    bool isInputMovement = inputMovementMagni > 0.0f;
 
                     if (isInputMovement)
                     {

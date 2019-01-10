@@ -1618,11 +1618,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   level:
-    inputMovementFreeLimit: 0.2
     armLength: 1
     handMovement: 0.65
     handMovementSpdFactor: 0.05
-    ableInputAreaForMovement: 0.1
+    ableInputAreaForMovement: 0.4
   gripTop: {fileID: 1407777588}
   gripBottom: {fileID: 1185530130}
   leftHand: {fileID: 1338139766}
