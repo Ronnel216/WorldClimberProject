@@ -68,20 +68,6 @@ public class ClimbingSystem : MonoBehaviour {
     }
     HandMovementMode handMovementMode;
 
-    class HandTrasControlCmd
-    {
-        GameObject hand = null;
-        Vector3 target = Vector3.zero;
-        float safeErrorDistance = Mathf.Epsilon;    // 許容誤差
-
-        bool Execute(float step)
-        {
-            Vector3 moveVec = target - hand.transform.position;
-            hand.transform.Translate(moveVec.normalized * step);
-            return moveVec.sqrMagnitude <= safeErrorDistance * safeErrorDistance;
-        }
-    }
-
     // Use this for initialization
     void Start () {
         rigid = GetComponent<Rigidbody>();
@@ -171,7 +157,7 @@ public class ClimbingSystem : MonoBehaviour {
 
         GrippablePoint grippablePoint;
 
-        CharacterJoint grippingJoint;
+        CharacterJoint grippingJoint = null;
 
         // Use this for initialization
         public void Init(ClimbingSystem system)
@@ -224,27 +210,39 @@ public class ClimbingSystem : MonoBehaviour {
                 //Gizmos.DrawWireSphere(system.nearGrippable.transform.position);
             });
 
-            if (Input.GetKeyDown(KeyCode.UpArrow))
+            if (inputMovementMagni > 0.0f)
             {
-                var nearGripColi = ClimberMethod.CheckGripPoint(Vector3.up, system.nearGrippable);             
+                var nearGripColi = ClimberMethod.CheckGripPoint(inputMovement, system.nearGrippable, Mathf.Min(system.level.ableInputMovementLimitCos + 0.5f, 1.0f - Mathf.Epsilon));
 
                 if (nearGripColi != null)
                 {
                     system.grippingCollider = ClimberMethod.SetGrippablePoint(ref grippablePoint, nearGripColi);
                     system.handMovementMode = HandMovementMode.Catch;
                 }
+
             }
 
-            if (Input.GetKeyDown(KeyCode.DownArrow))
-            {
-                var nearGripColi = ClimberMethod.CheckGripPoint(Vector3.down, system.nearGrippable);
+            //if (Input.GetKeyDown(KeyCode.UpArrow))
+            //{
+            //    var nearGripColi = ClimberMethod.CheckGripPoint(Vector3.up, system.nearGrippable);             
 
-                if (nearGripColi != null)
-                {
-                    system.grippingCollider = ClimberMethod.SetGrippablePoint(ref grippablePoint, nearGripColi);
-                    system.handMovementMode = HandMovementMode.Catch;
-                }
-            }
+            //    if (nearGripColi != null)
+            //    {
+            //        system.grippingCollider = ClimberMethod.SetGrippablePoint(ref grippablePoint, nearGripColi);
+            //        system.handMovementMode = HandMovementMode.Catch;
+            //    }
+            //}
+
+            //if (Input.GetKeyDown(KeyCode.DownArrow))
+            //{
+            //    var nearGripColi = ClimberMethod.CheckGripPoint(Vector3.down, system.nearGrippable);
+
+            //    if (nearGripColi != null)
+            //    {
+            //        system.grippingCollider = ClimberMethod.SetGrippablePoint(ref grippablePoint, nearGripColi);
+            //        system.handMovementMode = HandMovementMode.Catch;
+            //    }
+            //}
 
             Vector3 moveVec = Vector3.zero;
             //GameObject forwardHand = null;

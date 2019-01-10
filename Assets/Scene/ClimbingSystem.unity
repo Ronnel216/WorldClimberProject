@@ -665,7 +665,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 391890070}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: 0}
+  m_LocalPosition: {x: 0, y: 0.75, z: 0}
   m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_Children:
   - {fileID: 554956403}
@@ -822,8 +822,8 @@ LineRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Positions:
-  - {x: -4, y: 4.3, z: -1}
-  - {x: -5, y: 2, z: -10}
+  - {x: -5, y: 4, z: -1}
+  - {x: -5.3, y: 2, z: -10}
   m_Parameters:
     serializedVersion: 2
     widthMultiplier: 0.02
@@ -887,8 +887,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   edges:
-  - {x: -4, y: 4.3, z: -1}
-  - {x: -5, y: 2, z: -10}
+  - {x: -5, y: 4, z: -1}
+  - {x: -5.3, y: 2, z: -10}
 --- !u!23 &576159914
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1413,7 +1413,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   edges:
   - {x: 6.42, y: 3.5, z: -2}
-  - {x: -5, y: 2.5, z: -6}
+  - {x: -5.71, y: 2.5, z: -6}
 --- !u!120 &1407777594
 LineRenderer:
   m_ObjectHideFlags: 0
@@ -1450,7 +1450,7 @@ LineRenderer:
   m_SortingOrder: 0
   m_Positions:
   - {x: 6.42, y: 3.5, z: -2}
-  - {x: -5, y: 2.5, z: -6}
+  - {x: -5.71, y: 2.5, z: -6}
   m_Parameters:
     serializedVersion: 2
     widthMultiplier: 0.02
@@ -1621,7 +1621,7 @@ MonoBehaviour:
     armLength: 1
     handMovement: 0.65
     handMovementSpdFactor: 0.05
-    ableInputAreaForMovement: 0.4
+    ableInputMovementLimitCos: 0.3
   gripTop: {fileID: 1407777588}
   gripBottom: {fileID: 1185530130}
   leftHand: {fileID: 1338139766}
@@ -1948,7 +1948,7 @@ CharacterJoint:
   m_Anchor: {x: 0, y: 0.5, z: 0}
   m_Axis: {x: 1, y: 0, z: 0}
   m_AutoConfigureConnectedAnchor: 1
-  m_ConnectedAnchor: {x: 0, y: -1.5, z: 0}
+  m_ConnectedAnchor: {x: 0, y: -1, z: 0}
   serializedVersion: 2
   m_SwingAxis: {x: 0, y: 1, z: 0}
   m_TwistLimitSpring:
