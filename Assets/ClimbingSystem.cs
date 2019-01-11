@@ -69,8 +69,7 @@ public class ClimbingSystem : MonoBehaviour {
     // クライマーのステートマシーン
     InterfaceClimberState state;
 
-    bool isChange = false;
-    //bool isGrip;    // 仮のフラグ    ステイトにあとで変えます
+    bool isChange = false;  // あとで変数名　実装方法を変える
     // グリップ情報をまとめるクラス作ってもいいかも
 
     enum HandMovementMode
@@ -215,6 +214,7 @@ public class ClimbingSystem : MonoBehaviour {
             //canAdvanceStep = magnitudeHandToHand < handMovement;
             var inputMovement = ClimberMethod.GetInputMovement3D();
             var inputMovementMagni = inputMovement.magnitude;
+            DebugVisualizeVector3.visualize = inputMovement;
 
             // 掴んだ状態で移動できる範囲
             system.callInOnDrawGizmos.Add(() =>
@@ -224,7 +224,6 @@ public class ClimbingSystem : MonoBehaviour {
 
             if (inputMovementMagni > 0.0f)
             {
-                DebugVisualizeVector3.visualize = inputMovement;
                 var nearGripColi = ClimberMethod.CheckGripPoint(inputMovement, system.nearGrippable, system.level.ableInputGrippingLimitCos);
 
                 if (nearGripColi != null)
@@ -232,6 +231,7 @@ public class ClimbingSystem : MonoBehaviour {
                     system.grippingCollider = ClimberMethod.SetGrippablePoint(ref grippablePoint, nearGripColi);
                     //system.handMovementMode = HandMovementMode.Catch;
                     system.isChange = true;
+
                 }
 
             }
@@ -265,6 +265,65 @@ public class ClimbingSystem : MonoBehaviour {
                     break;
             }
 
+        }
+
+        private void AdvaneHand(Vector3 inputMovement, ClimbingSystem system)
+        {
+            float magnitudeHandToHand = ClimberMethod.CalcHandToHandMagnitude(system.rightHand, system.leftHand);
+
+            var inputMovementMagni = inputMovement.magnitude;
+            var moveVec = Vector3.zero;
+
+            var level = system.level;
+
+            if (system.isChange)
+            {
+                float step = grippablePoint.SetHandsPosition(forwardHand, system.grippingCollider, 0.5f);
+                bool isFinished = 0.000001f > step;
+                if (isFinished)
+                {
+                    grippablePoint.SetHandsPosition(forwardHand, system.grippingCollider);
+                    system.handMovementMode = HandMovementMode.Close;
+                    //system.handMovementMode = HandMovementMode.Advance;
+                }
+            }
+
+            // 移動方向を求める
+            if (inputMovementMagni > Mathf.Epsilon)
+            {
+                var edge = grippablePoint.GetEdgeFromDirection(inputMovement);
+                ClimberMethod.SetHandForwardAndBack(ref forwardHand, ref backHand, edge);
+                moveVec = grippablePoint.CalcMoveDirction(inputMovement);
+            }
+            else
+            {
+                // 入力なしで後方の手を近づける
+                system.handMovementMode = HandMovementMode.Close;
+                return;
+            }
+
+            bool canMoving = Vector3.Dot(moveVec, inputMovement) > level.ableInputMovementLimitCos;
+            if (canMoving == false) return;
+
+            // 手同士の距離が最大を超えた時　後方の手を近づける状態に遷移
+            if (level.maxHandToHand < magnitudeHandToHand)
+            {
+                system.handMovementMode = HandMovementMode.Close;
+                return;
+            }
+
+            // 前方の手を進める
+            if (level.maxHandToHand > magnitudeHandToHand)
+            {
+                var movement = ClimberMethod.CalcLerpTranslation(
+                    moveVec.normalized,
+                    Mathf.Max(magnitudeHandToHand, 1f),
+                    system.level.handMovementSpdFactor);
+                movement = grippablePoint.ClampHandsMovement(forwardHand.transform.position, movement);
+
+                forwardHand.transform.Translate(movement, Space.World);
+            }
+            return;
         }
 
         private void CloseHand(Vector3 inputMovement, ClimbingSystem system)
@@ -314,63 +373,6 @@ public class ClimbingSystem : MonoBehaviour {
             return;
         }
 
-        private void AdvaneHand(Vector3 inputMovement, ClimbingSystem system)
-        {
-            float magnitudeHandToHand = ClimberMethod.CalcHandToHandMagnitude(system.rightHand, system.leftHand);
-
-            var inputMovementMagni = inputMovement.magnitude;
-            var moveVec = Vector3.zero;
-
-            var level = system.level;
-
-            if (system.isChange)
-            {
-                float step = grippablePoint.SetHandsPosition(forwardHand, system.grippingCollider, 0.5f);
-                bool isFinished = 0.000001f > step;
-                if (isFinished)
-                {
-                    grippablePoint.SetHandsPosition(forwardHand, system.grippingCollider);
-                    //system.handMovementMode = HandMovementMode.Advance;
-                }
-            }
-
-            // 移動方向を求める
-            if (inputMovementMagni > Mathf.Epsilon)
-            {
-                var edge = grippablePoint.GetEdgeFromDirection(inputMovement);
-                ClimberMethod.SetHandForwardAndBack(ref forwardHand, ref backHand, edge);
-                moveVec = grippablePoint.CalcMoveDirction(inputMovement);
-            }
-            else
-            {
-                // 入力なしで後方の手を近づける
-                system.handMovementMode = HandMovementMode.Close;
-                return;
-            }
-
-            bool canMoving = Vector3.Dot(moveVec, inputMovement) > level.ableInputMovementLimitCos;
-            if (canMoving == false) return;
-
-            // 手同士の距離が最大を超えた時　後方の手を近づける状態に遷移
-            if (level.maxHandToHand < magnitudeHandToHand)
-            {
-                system.handMovementMode = HandMovementMode.Close;
-                return;
-            }
-
-            // 前方の手を進める
-            if (level.maxHandToHand > magnitudeHandToHand)
-            {
-                var movement = ClimberMethod.CalcLerpTranslation(
-                    moveVec.normalized,
-                    Mathf.Max(magnitudeHandToHand, 1f),
-                    system.level.handMovementSpdFactor);
-                movement = grippablePoint.ClampHandsMovement(forwardHand.transform.position, movement);
-
-                forwardHand.transform.Translate(movement, Space.World);
-            }
-            return;
-        }
     }
-  
+
 }

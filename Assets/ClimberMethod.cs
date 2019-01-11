@@ -61,7 +61,9 @@ static public class ClimberMethod
         Vector3 basePos = grippableArea.transform.position;
         foreach (var collider in grippableArea.Colliders)
         {
+
             Vector3 point = collider.ClosestPoint(basePos + movement);
+
             // 移動入力方向に存在しない
             if (Vector3.Dot((point - basePos).normalized, movement) <= ableGripCos) continue;
 
@@ -112,6 +114,32 @@ static public class ClimberMethod
         // 手の参照を入れ替える
         Swap<GameObject>(ref forwardHand, ref backHand);
  
+    }
+
+    //? 現在の実装だと役立たず
+    static public void SetHandForwardAndBack(
+        ref GameObject forwardHand, ref GameObject backHand,
+        GameObject rightHand, GameObject leftHand, 
+        GrippablePoint gripping, Vector3 direction)
+    {
+        var index = gripping.GetEdgeIndexFromDirection(direction);
+
+        switch (index)
+        {
+            case 0:
+                forwardHand = leftHand;
+                backHand = rightHand;
+                break;
+
+            case 1:
+                forwardHand = rightHand;
+                backHand = leftHand;
+                break;
+
+            default:
+                break;
+        }
+
     }
 
     // 0 : forward  1 : back
