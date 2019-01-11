@@ -54,7 +54,7 @@ static public class ClimberMethod
     }
 
     // 移動入力方向の掴める場所を取得する
-    static public Collider CheckGripPoint(Vector3 movement, SubCollider grippableArea, float ableGripCos)
+    static public Collider CheckGripPoint(Vector3 moveDir, SubCollider grippableArea, float ableGripCos)
     {
         float minDistanceSqr = float.MaxValue;
         Collider nearGripColi = null;
@@ -62,10 +62,10 @@ static public class ClimberMethod
         foreach (var collider in grippableArea.Colliders)
         {
 
-            Vector3 point = collider.ClosestPoint(basePos + movement);
+            Vector3 point = collider.ClosestPoint(basePos + moveDir);
 
             // 移動入力方向に存在しない
-            if (Vector3.Dot((point - basePos).normalized, movement) <= ableGripCos) continue;
+            if (Vector3.Dot((point - basePos).normalized, moveDir) <= ableGripCos) continue;
 
             float distanceSqr = (point - basePos).sqrMagnitude;
             if (minDistanceSqr > distanceSqr)

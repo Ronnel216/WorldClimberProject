@@ -26,8 +26,23 @@ public class ClimbingSystem : MonoBehaviour {
         [Range(0f, 1f)]
         public float ableInputGrippingLimitCos = 0.8f;
 
+        // ベースジャンプ力
+        public float baseJumpPower = 1000f;
+
+        // 最大ジャンプ力の増加量
+        [Range(1f, Mathf.Infinity)]
+        public float maxJumpPowerFactor = 1.5f;
+
+        // ジャンプ力　最大までのため時間
+        public float needTimeByFullJumpPower = 1f;
+
+        // ジャンプ方向
+        public Vector3 jumpingDirction = Vector3.forward;
+
         public void Init()
         {
+            jumpingDirction.Normalize();
+
             maxHandToHand = armLength * 2 * 0.7f;         // X
             minHandToHand = maxHandToHand - handMovement; // Y
         }
@@ -67,7 +82,8 @@ public class ClimbingSystem : MonoBehaviour {
     List<System.Action> callInOnDrawGizmos;
 
     // クライマーのステートマシーン
-    InterfaceClimberState state;
+    InterfaceClimberState currentState;
+    InterfaceClimberState nextState;
 
     bool isChange = false;  // あとで変数名　実装方法を変える
     // グリップ情報をまとめるクラス作ってもいいかも
@@ -105,21 +121,33 @@ public class ClimbingSystem : MonoBehaviour {
         ClimberMethod.SetHandForwardAndBack(ref rightHand, ref leftHand, Vector3.right);
 
         // 仮
-        state = new GrippingWallState();
+        currentState = new GrippingWallState();
+        nextState = null;
 
-        state.Init(this);
+        currentState.Init(this);
     }
 
     void FixedUpdate()
     {
-        state.FixedUpdate(this);
+        currentState.FixedUpdate(this);
     }
 
     // Update is called once per frame
     void Update ()
     {
-        state.Update(this);
+        currentState.Update(this);
 
+        //? 呼び出すタイミングの考察が必要
+        if (nextState != null)
+        {
+            currentState = nextState;
+            nextState = null;
+        }
+    }
+
+    void ChangeState(InterfaceClimberState newState)
+    {
+        nextState = newState;
     }
 
     void OnDrawGizmos()
@@ -169,7 +197,23 @@ public class ClimbingSystem : MonoBehaviour {
     {
         public void Init(ClimbingSystem system) { }
 
-        public void FixedUpdate(ClimbingSystem system) { }
+        public void FixedUpdate(ClimbingSystem system)
+        {
+            //var nearGripColi = ClimberMethod.CheckGripPoint(
+            //    system.rigid.velocity.normalized, 
+            //    system.nearGrippable, 
+            //    system.level.ableInputGrippingLimitCos);
+
+            //if (nearGripColi != null)
+            //{
+            //    var grippablePoint = system.gripTop.GetComponent<GrippablePoint>();
+            //    system.grippingCollider = ClimberMethod.SetGrippablePoint(ref grippablePoint, nearGripColi);
+
+
+            //}
+
+
+        }
 
         public void Update(ClimbingSystem system) { }
     }
@@ -234,9 +278,16 @@ public class ClimbingSystem : MonoBehaviour {
                 //Gizmos.DrawWireSphere(system.nearGrippable.transform.position);
             });
 
-            if (inputMovementMagni > 0.0f)
+            if (Input.GetKey(KeyCode.LeftShift))
             {
-
+                if (Input.GetKeyDown(KeyCode.Space))
+                {
+                    var jumpDir = CameraController.direction * system.level.jumpingDirction;
+                    system.ChangeState(new AirState());
+                    float jumpPower = system.level.baseJumpPower * system.level.maxJumpPowerFactor;
+                    system.rigid.AddForce(jumpDir * jumpPower, ForceMode.Impulse);   
+                }
+                return;
             }
 
             Vector3 moveVec = Vector3.zero;
