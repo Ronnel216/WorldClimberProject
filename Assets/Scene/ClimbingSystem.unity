@@ -1887,9 +1887,10 @@ MonoBehaviour:
     handMovementSpdFactor: 0.05
     ableInputMovementLimitCos: 0.3
     ableInputGrippingLimitCos: 0.923
-    baseJumpPower: 0
-    maxAddableJumpPower: 0
+    baseJumpPower: 500
+    maxJumpPowerFactor: 1.5
     needTimeByFullJumpPower: 1
+    jumpingDirction: {x: 0, y: 0.5, z: 1}
   gripTop: {fileID: 1407777588}
   gripBottom: {fileID: 1185530130}
   leftHand: {fileID: 1338139766}
