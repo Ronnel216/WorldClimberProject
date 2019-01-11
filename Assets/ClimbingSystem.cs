@@ -163,6 +163,18 @@ public class ClimbingSystem : MonoBehaviour {
     }
 
     /// <summary>
+    /// 空中で何も手を触れていない状態
+    /// </summary>
+    class AirState : InterfaceClimberState
+    {
+        public void Init(ClimbingSystem system) { }
+
+        public void FixedUpdate(ClimbingSystem system) { }
+
+        public void Update(ClimbingSystem system) { }
+    }
+
+    /// <summary>
     /// 壁端つかまり状態
     /// </summary>
     class GrippingWallState : InterfaceClimberState
@@ -224,15 +236,6 @@ public class ClimbingSystem : MonoBehaviour {
 
             if (inputMovementMagni > 0.0f)
             {
-                var nearGripColi = ClimberMethod.CheckGripPoint(inputMovement, system.nearGrippable, system.level.ableInputGrippingLimitCos);
-
-                if (nearGripColi != null)
-                {
-                    system.grippingCollider = ClimberMethod.SetGrippablePoint(ref grippablePoint, nearGripColi);
-                    //system.handMovementMode = HandMovementMode.Catch;
-                    system.isChange = true;
-
-                }
 
             }
 
@@ -275,6 +278,16 @@ public class ClimbingSystem : MonoBehaviour {
             var moveVec = Vector3.zero;
 
             var level = system.level;
+
+            var nearGripColi = ClimberMethod.CheckGripPoint(inputMovement, system.nearGrippable, system.level.ableInputGrippingLimitCos);
+
+            if (nearGripColi != null)
+            {
+                system.grippingCollider = ClimberMethod.SetGrippablePoint(ref grippablePoint, nearGripColi);
+                //system.handMovementMode = HandMovementMode.Catch;
+                system.isChange = true;
+
+            }
 
             if (system.isChange)
             {
