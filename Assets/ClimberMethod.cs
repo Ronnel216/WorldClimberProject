@@ -24,7 +24,7 @@ static public class ClimberMethod
 
     // 専用 ---------------
 
-    static public Vector3 CalcLerpTranslation(Vector3 direction, float length,float step)
+    static public Vector3 CalcLerpTranslation(Vector3 direction, float length, float step)
     {
         return direction.normalized * length * step;
     }
@@ -62,9 +62,8 @@ static public class ClimberMethod
         foreach (var collider in grippableArea.Colliders)
         {
             Vector3 point = collider.ClosestPoint(basePos + movement);
-
             // 移動入力方向に存在しない
-            if (Vector3.Dot(point - basePos, movement) <= ableGripCos) continue;
+            if (Vector3.Dot((point - basePos).normalized, movement) <= ableGripCos) continue;
 
             float distanceSqr = (point - basePos).sqrMagnitude;
             if (minDistanceSqr > distanceSqr)
@@ -135,5 +134,10 @@ static public class ClimberMethod
         rigid.transform.rotation = ancharRigid.transform.rotation;
         rigid.velocity = ancharRigid.velocity;
 
+    }
+
+    static public float CalcHandToHandMagnitude(GameObject hand0, GameObject hand1)
+    {
+        return (hand0.transform.position - hand1.transform.position).magnitude;
     }
 }

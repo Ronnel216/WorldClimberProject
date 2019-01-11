@@ -46,7 +46,7 @@ public class GrippablePoint : MonoBehaviour {
 
     public Vector3 ClampHandsPosition(Vector3 handPos)
     {
-        var indexes = GetEdgeFromPos(handPos);
+        var indexes = GetEdgesFromPos(handPos);
         var edgeDir = edges[indexes[0]] - edges[indexes[1]];
         var egesToHandVec = edges[indexes[0]] - handPos;
 
@@ -77,6 +77,13 @@ public class GrippablePoint : MonoBehaviour {
         }
 
         // 位置の設定
+        //if (result[0] == result[1]) //? 応急処置
+        //{
+        //    var indexes = GetEdgesFromPos(result[0]);
+        //    var offset = (edges[indexes[1]] - edges[indexes[0]]).normalized * 0.2f;
+        //    result[0] += offset;
+        //}
+
         hands[0].transform.position = result[0];
         hands[1].transform.position = result[1];
 
@@ -93,8 +100,35 @@ public class GrippablePoint : MonoBehaviour {
         return totalSqr;
     }
 
+    public float SetHandsPosition(GameObject hand, Collider selfColi, float lerp = 1.0f)
+    {
+        var pos = hand.transform.position;
+        var target = selfColi.ClosestPoint(pos);
+
+        Vector3 result = Vector3.Lerp(pos, target, lerp);
+
+        // 位置の設定
+        //if (result[0] == result[1]) //? 応急処置
+        //{
+        //    var indexes = GetEdgesFromPos(result[0]);
+        //    var offset = (edges[indexes[1]] - edges[indexes[0]]).normalized * 0.2f;
+        //    result[0] += offset;
+        //}
+
+        hand.transform.position = result;
+
+        // 角度の調整
+        hand.transform.rotation = ClimberMethod.CalcRotation(edges[0], edges[1]);
+
+        float totalSqr = 0.0f;
+            totalSqr += (hand.transform.position - target).sqrMagnitude;
+
+        return totalSqr;
+
+    }
+
     // 近い端を取得する
-    public int[] GetEdgeFromPos(Vector3 pos)
+    public int[] GetEdgesFromPos(Vector3 pos)
     {
         float d0 = (edges[0] - pos).sqrMagnitude;
         float d1 = (edges[1] - pos).sqrMagnitude;
@@ -110,7 +144,7 @@ public class GrippablePoint : MonoBehaviour {
 
     public Vector3 GetEdgeFromDirection(Vector3 direction)
     {
-        int[] indexes = GetEdgeFromPos(GetEdgesCenter() + direction);
+        int[] indexes = GetEdgesFromPos(GetEdgesCenter() + direction);
         return GetEdge(indexes[0]);
     }
 
