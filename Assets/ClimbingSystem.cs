@@ -54,10 +54,6 @@ public class ClimbingSystem : MonoBehaviour {
     [SerializeField]
     LevelDesign level;
 
-    [SerializeField]
-    GameObject gripTop = null;
-    [SerializeField]
-    GameObject gripBottom;
 
     [SerializeField]
     GameObject leftHand;
@@ -142,6 +138,9 @@ public class ClimbingSystem : MonoBehaviour {
         {
             currentState = nextState;
             nextState = null;
+
+            currentState.Init(this);
+
         }
     }
 
@@ -199,19 +198,18 @@ public class ClimbingSystem : MonoBehaviour {
 
         public void FixedUpdate(ClimbingSystem system)
         {
-            //var nearGripColi = ClimberMethod.CheckGripPoint(
-            //    system.rigid.velocity.normalized, 
-            //    system.nearGrippable, 
-            //    system.level.ableInputGrippingLimitCos);
+            var nearGripColi = ClimberMethod.CheckGripPoint(
+                system.rigid.velocity.normalized,
+                system.nearGrippable,
+                system.level.ableInputGrippingLimitCos);
 
-            //if (nearGripColi != null)
-            //{
-            //    var grippablePoint = system.gripTop.GetComponent<GrippablePoint>();
-            //    system.grippingCollider = ClimberMethod.SetGrippablePoint(ref grippablePoint, nearGripColi);
+            if (nearGripColi != null)
+            {
+                var grippablePoint = system.nearGrippable.GetComponent<GrippablePoint>();
+                system.grippingCollider = ClimberMethod.SetGrippablePoint(ref grippablePoint, nearGripColi);
 
 
-            //}
-
+            }
 
         }
 
@@ -234,7 +232,7 @@ public class ClimbingSystem : MonoBehaviour {
         public void Init(ClimbingSystem system)
         {
             // 掴んでいる地形
-            grippablePoint = system.gripTop.GetComponent<GrippablePoint>();
+            grippablePoint = system.nearGrippable.GetComponent<GrippablePoint>();
 
             // 体を制御 -----
             grippingJoint = system.gripAnchar.GetComponent<CharacterJoint>();
