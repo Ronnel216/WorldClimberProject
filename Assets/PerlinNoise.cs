@@ -71,7 +71,8 @@ public class Noise
 
     public static float Range(float min, float max, float noise)
     {
-        return ((max - min) * noise + min);
+        var result = ((max - min) * noise + min);
+        return Mathf.Clamp(result, min, max);
     }
 
     public static float PerlinNoise(float x)
