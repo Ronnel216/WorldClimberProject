@@ -22,15 +22,45 @@ public class WorldMaker : MonoBehaviour {
 
         public MyMap(int xSize, int ySize, Type init)
         {
-            map = new Type[xSize + ((xSize - 1) * ySize)];
+            this.xSize = xSize;
 
+            map = new Type[xSize + ((xSize - 1) * ySize)];
             for (var i = 0; i < map.Length; i++)
                 Set(i, init);
+        }
+
+        public Vector2Int Size
+        {
+            get { return new Vector2Int(xSize, map.Length / xSize); }
+        }
+       
+        public void Each(System.Action<Type, int, int, int> func)
+        {
+            int x = 0, y = 0;
+            for (var i = 0; i < Length; i++)
+            {
+                GetIndex(i, out x, out y);
+                func(Get(i), x, y, i);
+            }
+        }
+
+        public void EachPerFrame(System.Action<Type, int, int, int> func, int i)
+        {
+            if (i >= Length) return;
+            int x = 0, y = 0;
+            GetIndex(i, out x, out y);
+            func(Get(i), x, y, i);
         }
 
         public int GetIndex(int x, int y)
         {
             return x + (xSize * y);
+        }
+
+        public void GetIndex(int i, out int x, out int y)
+        {
+            x = i % xSize;
+            y = i / xSize;
         }
 
         public Type Get(int i)
@@ -96,9 +126,9 @@ public class WorldMaker : MonoBehaviour {
     [System.Serializable]
     public class SizeControler
     {
-        [SerializeField, Range(1, int.MaxValue)]
+        [SerializeField, Range(1, 100)]
         int max = 1;
-        [SerializeField, Range(1, int.MaxValue)]
+        [SerializeField, Range(1, 100)]
         int min = 1;
 
         public int Max { get { return this.max; } }
@@ -107,6 +137,8 @@ public class WorldMaker : MonoBehaviour {
         public int GetSize(float x, float y)
         {
             var noise = Noise.PerlinNoise(x, y);
+            Debug.Log("min" + min);
+            Debug.Log("max" + max);
             int result = (int)Noise.Range(min, max, noise);
             return result;
         }
@@ -144,13 +176,59 @@ public class WorldMaker : MonoBehaviour {
 
         public float Consistency { get { return this.consistency; } }
 
-        public void SetInsideCell(float x, float y, ref LandShapeChipId[,] map, Vector2Int[] search)
+        public void SetInsideCell(float x, float y, ref LandShapeMap map, ref List<Vector2Int> search)
         {
-            // 0,1,2,3 それぞれ 左上右下            
-            var index = Random.Range(0, search.Length);
+            var index = Random.Range(0, search.Count);
 
-            Debug.Assert(map[search[index].x, search[index].y] == LandShapeChipId.Undefind, "既に定義済み");
-            map[search[index].x, search[index].y] = LandShapeChipId.Inside;
+            Debug.Assert(map.Get(search[index].x, search[index].y) == LandShapeChipId.Undefind, "既に定義済み");
+            map.Set(search[index].x, search[index].y, LandShapeChipId.Inside);
+
+            // 探索範囲の追加
+            GetAroundCell(search[index].x, search[index].y, map, ref search);
+
+            search.RemoveAt(index);            
+        }
+
+        void GetAroundCell(int x, int y, LandShapeMap map, ref List<Vector2Int> list)
+        {
+            var around = new List<Vector2Int>();
+            // 周辺のセルの取得
+            for (int i = -1; i <= 1; i++)
+                for (int j = -1; j <= 1; j++)
+                    around.Add(new Vector2Int(x + i, y + j));
+
+            // 中心のセルの削除
+            around.RemoveAt(4);
+
+            // 範囲外のセルの削除
+            around.RemoveAll((Vector2Int pos) => {
+                return
+                pos.x < 0 ||
+                pos.x > map.Size.x ||
+                pos.y < 0 ||
+                pos.y > map.Size.y;
+            });
+
+            foreach (var item in around)
+            {
+                Debug.Log(item);
+            }
+
+
+            // リストへの追加
+            var cnt = list.Count;
+            foreach (var v in around)
+            {
+                for (var i = 0; i < cnt; i++)
+                {
+                    if (list[i] == v) continue;
+                    if (map.Get(v.x, v.y) != LandShapeChipId.Undefind) continue;
+
+                    Debug.Log("add");
+                    list.Add(v);
+                }
+            }          
+
         }
 
     }
@@ -170,9 +248,13 @@ public class WorldMaker : MonoBehaviour {
     [SerializeField, Range(1f, int.MaxValue)]
     int cellSize = 1;
 
+    bool isFinished = false;
+
+    LandShapeMap map;
+    GameObject obj;
     private void Awake()
     {
-        var obj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        obj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
 
         // 前提条件
         Debug.Assert(fieldHalfSize.x % cellSize == 0);
@@ -180,14 +262,44 @@ public class WorldMaker : MonoBehaviour {
         Debug.Assert(fieldHalfSize.z % cellSize == 0);
 
         // 初期化
-        var map = new LandShapeMap(fieldHalfSize.x / cellSize, fieldHalfSize.z / cellSize, LandShapeChipId.Undefind);
+        Vector3Int numCell = new Vector3Int
+        (
+            2 * fieldHalfSize.x / cellSize,
+            2 * fieldHalfSize.y / cellSize,
+            2 * fieldHalfSize.z / cellSize
+        );
 
+        map = new LandShapeMap(numCell.x / 2, numCell.z / 2, LandShapeChipId.Undefind);
 
+        // とりあえず中心から配置
+        var size = sizeControler.GetSize(0, 0.2f);
+        var count = 0;
+
+        var searchCell = new List<Vector2Int>();
+
+        for (var i = 0; i < 4; i++)
+            searchCell.Add(new Vector2Int(i % 2, i / 2));
+
+        Debug.Log(size);
+
+        while (count < size)
+        {
+            if (searchCell.Count == 0) break;
+            complexity.SetInsideCell(0f, 0f, ref map, ref searchCell);
+            count++;
+            if (count > 10000000) break;
+        }
 
     }
+    int index = 0;
 
     private void Update()
     {
-
+        map.EachPerFrame((LandShapeChipId id, int x, int y, int i) =>
+        {
+            if (id == LandShapeChipId.Inside)
+                GameObject.Instantiate(obj, new Vector3((float)x, 0f, (float)y), Quaternion.identity);
+        }, index++);
+        
     }
 }
