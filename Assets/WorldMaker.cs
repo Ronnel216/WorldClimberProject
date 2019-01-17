@@ -20,10 +20,9 @@ public class WorldMaker : MonoBehaviour {
         Type[] map = null;
         int xSize = 0;
 
-        public MyMap(int x, int y, Type init)
+        public MyMap(int xSize, int ySize, Type init)
         {
-            xSize = x;
-            map = new Type[x + (xSize * y)];
+            map = new Type[xSize + ((xSize - 1) * ySize)];
 
             for (var i = 0; i < map.Length; i++)
                 Set(i, init);
@@ -70,7 +69,8 @@ public class WorldMaker : MonoBehaviour {
         {
             undefind = new List<int>(Length);
             for (int i = 0; i < Length; i++)
-                undefind[i] = i;
+                undefind.Add( i );
+
         }
 
         public List<int> GetUndefindList()
@@ -169,8 +169,6 @@ public class WorldMaker : MonoBehaviour {
 
     [SerializeField, Range(1f, int.MaxValue)]
     int cellSize = 1;
-
-    LandShapeChipId[] mapArray = null;
 
     private void Awake()
     {

@@ -204,7 +204,7 @@ GameObject:
   - component: {fileID: 1039648748}
   - component: {fileID: 1039648747}
   m_Layer: 0
-  m_Name: WorldCreater
+  m_Name: WorldMaker
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -221,7 +221,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f28dc6f5f8053674a925aa3c08a2adb8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  material: {fileID: 2100000, guid: e247cd6e2274872409ac1621a6e95fe3, type: 2}
+  sizeControler:
+    max: 1
+    min: 1
+  independence:
+    max: 1
+    min: 1
+  complexity:
+    consistency: 0
+  fieldHalfSize: {x: 5, y: 5, z: 5}
+  cellSize: 1
 --- !u!4 &1039648748
 Transform:
   m_ObjectHideFlags: 0
@@ -229,7 +238,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1039648746}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.749727, y: 1.4066334, z: -3.6395972}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
