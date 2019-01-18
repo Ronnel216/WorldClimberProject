@@ -252,54 +252,14 @@ public class WorldMaker : MonoBehaviour {
 
     LandShapeMap map;
     GameObject obj;
+
     private void Awake()
     {
-        obj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-
-        // 前提条件
-        Debug.Assert(fieldHalfSize.x % cellSize == 0);
-        Debug.Assert(fieldHalfSize.y % cellSize == 0);
-        Debug.Assert(fieldHalfSize.z % cellSize == 0);
-
-        // 初期化
-        Vector3Int numCell = new Vector3Int
-        (
-            2 * fieldHalfSize.x / cellSize,
-            2 * fieldHalfSize.y / cellSize,
-            2 * fieldHalfSize.z / cellSize
-        );
-
-        map = new LandShapeMap(numCell.x / 2, numCell.z / 2, LandShapeChipId.Undefind);
-
-        // とりあえず中心から配置
-        var size = sizeControler.GetSize(0, 0.2f);
-        var count = 0;
-
-        var searchCell = new List<Vector2Int>();
-
-        for (var i = 0; i < 4; i++)
-            searchCell.Add(new Vector2Int(i % 2, i / 2));
-
-        Debug.Log(size);
-
-        while (count < size)
-        {
-            if (searchCell.Count == 0) break;
-            complexity.SetInsideCell(0f, 0f, ref map, ref searchCell);
-            count++;
-            if (count > 10000000) break;
-        }
 
     }
-    int index = 0;
 
     private void Update()
     {
-        map.EachPerFrame((LandShapeChipId id, int x, int y, int i) =>
-        {
-            if (id == LandShapeChipId.Inside)
-                GameObject.Instantiate(obj, new Vector3((float)x, 0f, (float)y), Quaternion.identity);
-        }, index++);
         
     }
 }

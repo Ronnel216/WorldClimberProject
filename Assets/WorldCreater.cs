@@ -18,6 +18,9 @@ public class WorldCreater : MonoBehaviour {
      */
     const int TrianglesNumPerFace = 6;
 
+    [SerializeField]
+    float cellSize = 3.0f;
+
     // 地形のポリゴン数　面数
     [SerializeField]
     Vector2Int polyNum = new Vector2Int(10, 5);
@@ -26,12 +29,19 @@ public class WorldCreater : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
-        // 面数に必要な分だけ確保
-        vertNum = new Vector2Int(polyNum.x + 1, polyNum.y + 1);
+        //// 面数に必要な分だけ確保
+        //vertNum = new Vector2Int(polyNum.x + 1, polyNum.y + 1);
 
-        var filter = GetComponent<MeshFilter>();
-        filter.sharedMesh = CreateMesh();
-        AssetDatabase.CreateAsset(filter.sharedMesh, "Assets/Temp/"+ filter.sharedMesh.name +".asset");
+        //var filter = GetComponent<MeshFilter>();
+        //filter.sharedMesh = CreateMesh();
+        //AssetDatabase.CreateAsset(filter.sharedMesh, "Assets/Temp/"+ filter.sharedMesh.name +".asset");
+
+        var ver = new Vector2[200];
+        for (int i = 0; i < 200; i++)
+            ver[i] = new Vector2(UnityEngine.Random.Range(-50f, 50f), UnityEngine.Random.Range(-50f, 50f));
+
+        var a = new DelaunyTriangulation.Triangulator();
+        a.CreateInfluencePolygon(ver);
     }
 	
 	// Update is called once per frame
@@ -113,25 +123,34 @@ public class WorldCreater : MonoBehaviour {
             // 仮　頂点の位置は角度で決めるので　変位での計算は多分しない
             Vector3 translationVec = new Vector3(1, -1);
             
-            vertices[i] = new Vector3(x * translationVec.x, y * translationVec.y);
-            if (y == 2) // 仮でゆがませている
-            {
-                vertices[i] = new Vector3(x * translationVec.x, y * translationVec.y, -1);
-            }
+            vertices[i] = new Vector3(x * translationVec.x, y * translationVec.y) * cellSize;
+            //if (y == 2) // 仮でゆがませている
+            //{
+            //    vertices[i] = new Vector3(x * translationVec.x, y * translationVec.y, -1);
+            //}
 
-            if (y == 3) // 仮でゆがませている
+            //if (y == 3) // 仮でゆがませている
+            //{
+            //    vertices[i] = new Vector3(x * translationVec.x, y * translationVec.y, -1);
+            //}
+
+            if (x % 2 == 0)
             {
-                vertices[i] = new Vector3(x * translationVec.x, y * translationVec.y, -1);
+                vertices[i] += new Vector3(0f, 0f, -3);
+            }
+            if (y % 2 == 0)
+            {
+                vertices[i] += new Vector3(0f, 0f, -3);
             }
 
             vertices[i] -= new Vector3(vertNum.x / 2.0f, -vertNum.y, 0);     // 仮のメッシュのOffset
         }
 
-        for (int i = 0; i < vertFactors.Length; i++) // 係数の調整
-        {
-            Debug.Log("vertFactor" + i.ToString() + vertFactors[i]);
+        //for (int i = 0; i < vertFactors.Length; i++) // 係数の調整
+        //{
+        //    Debug.Log("vertFactor" + i.ToString() + vertFactors[i]);
 
-        }
+        //}
 
         // uvの設定
         // ! 面の数は　x > 1 && y > 1とする
