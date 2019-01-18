@@ -82,25 +82,19 @@ namespace DelaunyTriangulation
         }
 
 
-        public GameObject CreateInfluencePolygon(Vector2[] XZofVertices)
+        public Mesh CreateInfluencePolygon(Vector2[] XZofVertices)
         {
             Vector3[] Vertices = new Vector3[XZofVertices.Length];
             for (int ii1 = 0; ii1 < XZofVertices.Length; ii1++)
             {
                 Vertices[ii1] = new Vector3(XZofVertices[ii1].x, 0, XZofVertices[ii1].y);
             }
-            GameObject OurNewMesh = new GameObject("OurNewMesh1");
             Mesh mesh = new Mesh();
             mesh.vertices = Vertices;
             mesh.uv = XZofVertices;
             mesh.triangles = TriangulatePolygon(XZofVertices);
             mesh.RecalculateNormals();
-            MeshFilter mf = OurNewMesh.AddComponent<MeshFilter>();
-            OurNewMesh.AddComponent<MeshRenderer>();
-            //OurNewMesh.GetComponent().castShadows = false;
-            //OurNewMesh.GetComponent().receiveShadows = false;
-            mf.mesh = mesh;
-            return OurNewMesh;
+            return mesh;
         }
 
 

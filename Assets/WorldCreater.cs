@@ -36,20 +36,34 @@ public class WorldCreater : MonoBehaviour {
         //filter.sharedMesh = CreateMesh();
         //AssetDatabase.CreateAsset(filter.sharedMesh, "Assets/Temp/"+ filter.sharedMesh.name +".asset");
 
-        var ver = new Vector2[200];
-        for (int i = 0; i < 200; i++)
+        var ver = new Vector2[250];
+        for (int i = 0; i < 250; i++)
             ver[i] = new Vector2(UnityEngine.Random.Range(-50f, 50f), UnityEngine.Random.Range(-50f, 50f));
 
         var a = new DelaunyTriangulation.Triangulator();
-        a.CreateInfluencePolygon(ver);
-    }
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+        Mesh mesh =  a.CreateInfluencePolygon(ver);
 
-    
+        var vertices = mesh.vertices;
+        //for (int i = 0; i < vertices.Length; i++)
+        //{
+        //    vertices[i] += Vector3.up * UnityEngine.Random.Range(0f, 10f);
+        //}
+
+        mesh.vertices = vertices;
+
+        mesh.RecalculateNormals();
+
+        var filter = GetComponent<MeshFilter>();
+        filter.sharedMesh = mesh;        
+
+    }
+
+    // Update is called once per frame
+    void Update () {
+
+    }
+
+
 
     /// <summary>
     /// メッシュの生成

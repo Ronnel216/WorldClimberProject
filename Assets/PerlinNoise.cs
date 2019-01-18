@@ -71,7 +71,6 @@ public class Noise
 
     public static float Range(float min, float max, float noise)
     {
-        Debug.Log(noise);
         var result = ((max - min) * noise + min);
         return Mathf.Clamp(result, min, max);
     }
