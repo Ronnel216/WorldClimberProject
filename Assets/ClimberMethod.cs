@@ -81,9 +81,14 @@ static public class ClimberMethod
     }
 
     static public Collider SetGrippablePoint(ref GrippablePoint currentGripping, Collider nextGrippingCollider)
-    {
+    {        
         Debug.Log("Ok Grip");
-        currentGripping.gameObject.layer = LayerMask.NameToLayer("GrippingPoint");
+
+        // 現在掴んでいる場所から離れる
+        if (currentGripping != null)
+        {
+            currentGripping.gameObject.layer = LayerMask.NameToLayer("GrippingPoint");
+        }
 
         currentGripping = nextGrippingCollider.gameObject.GetComponent<GrippablePoint>();
         currentGripping.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
