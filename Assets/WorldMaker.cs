@@ -136,7 +136,7 @@ public class WorldMaker : MonoBehaviour {
 
         public int GetSize(float x, float y)
         {
-            var noise = Noise.PerlinNoise(x, y);
+            var noise = Mathf.PerlinNoise(x, y);
             Debug.Log("min" + min);
             Debug.Log("max" + max);
             int result = (int)Noise.Range(min, max, noise);
@@ -160,7 +160,7 @@ public class WorldMaker : MonoBehaviour {
 
         public int Check(Vector2Int a, Vector2Int b)
         {
-            var distanceLimit = (int)Noise.Range(min, max, Noise.PerlinNoise(a.x, a.y));
+            var distanceLimit = (int)Noise.Range(min, max, Mathf.PerlinNoise(a.x, a.y));
             var temp = (int)Vector2Int.Distance(a, b);
             return temp - distanceLimit;
         }
