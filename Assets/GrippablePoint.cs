@@ -9,6 +9,8 @@ public class GrippablePoint : MonoBehaviour {
 
     void Awake()
     {
+        GetComponent<LineRenderer>().GetPositions(edges);
+
         float radius = 0.1f;
         transform.localScale = new Vector3(radius, radius, radius);
 
