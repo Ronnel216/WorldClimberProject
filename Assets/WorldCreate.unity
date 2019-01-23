@@ -201,6 +201,9 @@ MonoBehaviour:
   cellSize: 1
   baseBumpy: 1
   noisecCycle: 5
+  grippableBumpySize:
+  - 0
+  - 0
 --- !u!1 &51507367
 GameObject:
   m_ObjectHideFlags: 0
@@ -640,6 +643,9 @@ MonoBehaviour:
   cellSize: 3
   baseBumpy: 10
   noisecCycle: 20
+  grippableBumpySize:
+  - 8
+  - 3
 --- !u!23 &1350556611
 MeshRenderer:
   m_ObjectHideFlags: 0
