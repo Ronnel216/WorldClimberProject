@@ -645,14 +645,14 @@ MonoBehaviour:
   grippableBumpySize:
   - 10
   - 3
-  - 5
+  - 3
 --- !u!23 &1350556611
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1350556609}
-  m_Enabled: 0
+  m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -660,7 +660,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 97be909178c374f4a8e3dffd3c2b01a2, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1078,7 +1078,7 @@ LineRenderer:
   m_Positions:
   - {x: 0, y: -20, z: 0}
   - {x: 10, y: -20, z: 0}
-  - {x: 50, y: -60, z: 0}
+  - {x: 50, y: -33.99, z: 0}
   m_Parameters:
     serializedVersion: 2
     widthMultiplier: 1
