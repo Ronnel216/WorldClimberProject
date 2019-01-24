@@ -69,7 +69,7 @@ public class ClimbingSystem : MonoBehaviour {
     [SerializeField]
     SubCollider nearGrippable = null;
 
-    GrippablePoint grippablePoint;
+    GrippablePoint2 grippablePoint;
 
     Rigidbody rigid;
 
@@ -207,7 +207,7 @@ public class ClimbingSystem : MonoBehaviour {
 
             if (nearGripColi != null)
             {
-                system.grippablePoint = system.nearGrippable.GetComponent<GrippablePoint>();
+                system.grippablePoint = system.nearGrippable.GetComponent<GrippablePoint2>();
                 system.grippingCollider = ClimberMethod.SetGrippablePoint(ref system.grippablePoint, nearGripColi);
 
                 system.ChangeState(new GrippingWallState());

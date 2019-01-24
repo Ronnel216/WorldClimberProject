@@ -22,9 +22,9 @@ GameObject:
   - component: {fileID: 114510268432865000}
   - component: {fileID: 120171296121847396}
   - component: {fileID: 65587400682985022}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: GripPoint
-  m_TagString: Untagged
+  m_TagString: GrippingPoint
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -49,7 +49,7 @@ BoxCollider:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1396572885358776}
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}

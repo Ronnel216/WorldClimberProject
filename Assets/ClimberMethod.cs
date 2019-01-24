@@ -80,7 +80,7 @@ static public class ClimberMethod
 
     }
 
-    static public Collider SetGrippablePoint(ref GrippablePoint currentGripping, Collider nextGrippingCollider)
+    static public Collider SetGrippablePoint(ref GrippablePoint2 currentGripping, Collider nextGrippingCollider)
     {        
         Debug.Log("Ok Grip");
 
@@ -90,7 +90,7 @@ static public class ClimberMethod
             currentGripping.gameObject.layer = LayerMask.NameToLayer("GrippingPoint");
         }
 
-        currentGripping = nextGrippingCollider.gameObject.GetComponent<GrippablePoint>();
+        currentGripping = nextGrippingCollider.gameObject.GetComponent<GrippablePoint2>();
         currentGripping.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
         return nextGrippingCollider;
     }
@@ -125,7 +125,7 @@ static public class ClimberMethod
     static public void SetHandForwardAndBack(
         ref GameObject forwardHand, ref GameObject backHand,
         GameObject rightHand, GameObject leftHand, 
-        GrippablePoint gripping, Vector3 direction)
+        GrippablePoint2 gripping, Vector3 direction)
     {
         var index = gripping.GetEdgeIndexFromDirection(direction);
 

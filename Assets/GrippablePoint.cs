@@ -11,8 +11,12 @@ public class GrippablePoint : MonoBehaviour {
     {
         GetComponent<LineRenderer>().GetPositions(edges);
 
+        GrippablePoint2.CreateEdges(edges[0], edges[1]);
+        Destroy(gameObject);
+        return;
         float radius = 0.1f;
         transform.localScale = new Vector3(radius, radius, radius);
+
 
         transform.position = (edges[0] + edges[1]) / 2;
         transform.localScale = new Vector3((edges[0] - edges[1]).magnitude, radius, radius); // 仮
