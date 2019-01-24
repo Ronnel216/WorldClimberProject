@@ -19,14 +19,14 @@ public class WallCreater : MonoBehaviour {
     [SerializeField]
     int baseNumVertex = 50;
 
-    [SerializeField, Range(1f, float.MaxValue)]
-    float cellSize = 1f;
-
     [SerializeField]
     float baseBumpy = 1.0f;
 
     [SerializeField]
     float noisecCycle = 5f;
+
+    [SerializeField]
+    Vector2 cellSizeFactor = new Vector2(1, 1);
 
     // 0:出っ張り具合 
     // 1:出っ張り位置の下のへっこみ具合
@@ -36,9 +36,8 @@ public class WallCreater : MonoBehaviour {
     Vector3 wallSize = Vector3.zero;
 
     // Use this for initialization
-    void Awake () {
+    void Awake() {
         wallSize = transform.lossyScale;
-        wallSize /= cellSize;
         transform.localScale = Vector3.one;
 
         CreateMesh();
@@ -69,7 +68,7 @@ public class WallCreater : MonoBehaviour {
         Vector2Int numVertex = new Vector2Int(
             (int)(allNum * (wallSize.x / wallSize.y)),
             (int)(allNum * (wallSize.y / wallSize.x)));
-        
+
         Debug.Log("頂点分配率 : " + numVertex);
         var ver = new Vector2[numVertex.x * numVertex.y];
         Debug.Log("頂点数 : " + ver.Length);
@@ -82,16 +81,16 @@ public class WallCreater : MonoBehaviour {
             {
                 Vector2 offset = new Vector2((float)i / numVertex.x, (float)j / numVertex.y);
                 Vector2 addjust = new Vector2(
-                    wallSize.x * cellSize / (numVertex.x - 1),
-                    wallSize.y * cellSize / (numVertex.y - 1));  // 範囲調整用 i, j は(ループ回数-1)までの値しかとらないため
-                offset.x *= wallSize.x * cellSize + addjust.x;
-                offset.y *= wallSize.y * cellSize + addjust.y;
-                offset += new Vector2(-wallSize.x / 2, -wallSize.y / 2) * cellSize;    // 中心に移動
+                    wallSize.x / (numVertex.x - 1),
+                    wallSize.y / (numVertex.y - 1));  // 範囲調整用 i, j は(ループ回数-1)までの値しかとらないため
+                offset.x *= wallSize.x + addjust.x;
+                offset.y *= wallSize.y + addjust.y;
+                offset += new Vector2(-wallSize.x / 2, -wallSize.y / 2);    // 中心に移動
                 ver[index] = offset;
 
                 // 配置に偏りを作る
-                float xRange = cellSize / 5;
-                float yRange = cellSize / 3;           
+                float xRange = (wallSize.x / numVertex.x / 2) * cellSizeFactor.x;
+                float yRange = (wallSize.y / numVertex.y / 2) * cellSizeFactor.y;
                 ver[index] += new Vector2(UnityEngine.Random.Range(-xRange, xRange), UnityEngine.Random.Range(-yRange, yRange));
 
                 // 添字進行
@@ -113,7 +112,7 @@ public class WallCreater : MonoBehaviour {
         }
 
         // indexを求める 不正値の場合は -1
-        System.Func<int, int, int, int, int> calcIndex = (int i, int j, int xSize, int ySize) =>{
+        System.Func<int, int, int, int, int> calcIndex = (int i, int j, int xSize, int ySize) => {
             if (j < 0 && ySize <= j && i < 0 && xSize <= i) return -1;
             var result = j + i * ySize;
             return result;
@@ -129,6 +128,8 @@ public class WallCreater : MonoBehaviour {
         //    for (int j = 0; j < numVertex.y; j++)
         //        if (j == numVertex.y / 2) map[i, j] = (char)WallChipID.Grippable;
 
+        //! 掴み位置を上下で隣接して配置するのは禁止
+        //! 掴み位置が一か所に対して2つ隣接するのは禁止
         for (int i = 0; i < numVertex.x; i++)
             for (int j = 0; j < numVertex.y; j++)
                 if (i == numVertex.y / 2) map[i, j] = (char)WallChipID.Grippable;
@@ -142,18 +143,66 @@ public class WallCreater : MonoBehaviour {
         //        if (i == numVertex.y / 2 + 1) map[j, i] = (char)WallChipID.Ground;
 
         // 掴み位置特性の付加
-        var a = new List<int>();
-        for (int i = 0; i < numVertex.x; i++)
+        //var a = new List<int>();
+        //for (int i = 0; i < numVertex.x; i++)
+        //{ 
+        //    for (int j = 0; j < numVertex.y; j++)
+        //    {
+        //        int tempIndex0 = calcIndex(i, j, numVertex.x, numVertex.y); // 頂点インデックスに変換する
+        //        Debug.Assert(tempIndex0 != -1);
+
+        //        if (map[i, j] != (char)WallChipID.Grippable) continue;
+        //        vertices[tempIndex0] += Vector3.back * grippableBumpySize[0];    // verticesの配置はx, yが逆
+        //        a.Add(tempIndex0);
+
+        //    }
+        //}
+
+
+
+        // 掴み位置特性の付加
+        var lineList = gameObject.GetComponentsInChildren<LineRenderer>();
+
+        System.Func<Vector3, Vector3, Vector3, Vector2Int, int> calcCellIndex =
+            (Vector3 linePos, Vector3 offset, Vector3 size, Vector2Int num) =>
         { 
+            Vector2 cellPos = linePos - offset;
+            cellPos.x += size.x / 2;
+            cellPos.x /= size.x / num.x;
+            cellPos.y += size.y / 2;
+            cellPos.y /= size.y / num.y;
+
+            return calcIndex((int)cellPos.x, (int)cellPos.y, num.x, num.y); // 頂点インデックスに変換する
+        };
+
+        for (int i = 0; i < lineList.Length; i++) // 次の頂点も同時に参照するため -1
+        {
+            Vector3[] posList = new Vector3[lineList[i].positionCount];
+            lineList[i].GetPositions(posList);
+            for (int j = 0; j < posList.Length; j++)
+            {
+                int tempIndex0 = calcCellIndex(posList[j], gameObject.transform.position, wallSize, numVertex);
+                Debug.Assert(tempIndex0 != -1);
+                vertices[tempIndex0] += Vector3.back * grippableBumpySize[0] * 100;    // verticesの配置はx, yが逆
+
+                //int loop = 100;
+                //for (int hoge = 0; hoge < loop; hoge++)
+                //{
+                //    var tempPos = Vector2.Lerp(cellPos, cellPos1, hoge / (float)loop);
+                //    var indexxx = calcIndex((int)tempPos.x, (int)tempPos.y, numVertex.x, numVertex.y); // 頂点インデックスに変換する
+                //    Debug.Assert(indexxx != -1);
+                //    vertices[indexxx] += Vector3.back * grippableBumpySize[0];
+                //}
+
+            }
+        }
+
+
+        for (int i = 0; i < numVertex.x; i++)
+        {
             for (int j = 0; j < numVertex.y; j++)
             {
-                int tempIndex0 = calcIndex(i, j, numVertex.x, numVertex.y); // 頂点インデックスに変換する
-                Debug.Assert(tempIndex0 != -1);
-
-                if (map[i, j] != (char)WallChipID.Grippable) continue;
-                vertices[tempIndex0] += Vector3.back * grippableBumpySize[0];    // verticesの配置はx, yが逆
-                a.Add(tempIndex0);
-
+                
             }
         }
 
@@ -199,16 +248,14 @@ public class WallCreater : MonoBehaviour {
         //        vertices[tempIndex] = Quaternion.AngleAxis((Mathf.Rad2Deg * curveRadian) * i, Vector3.down) * vertices[tempIndex];
         //    }
         //}
-
-        var resu = new Vector3[a.Count];
-        int indexx = 0;
-        foreach (var v in a) {
-            resu[indexx] = vertices[v];
-            indexx++;
+       
+        for (int i = 0; i < lineList.Length; i++) // 次の頂点も同時に参照するため -1
+        {
+            Vector3[] posList = new Vector3[lineList[i].positionCount];
+            lineList[i].GetPositions(posList);
+            for (int j = 0; j < posList.Length - 1; j++)
+                GrippablePoint2.CreateEdges(posList[j], posList[j + 1]);
         }
-        var line = gameObject.GetComponent<LineRenderer>();    // 仮　場所を変える
-        line.positionCount = resu.Length;
-        line.SetPositions(resu);
 
         // メッシュへの反映
         mesh.vertices = vertices;
