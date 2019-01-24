@@ -10,7 +10,8 @@ public class WallCreater : MonoBehaviour {
         None = 0,
         Ground,
         Grippable,
-        WallReverse
+        WallReverse,
+        Wall
     }
 
     [SerializeField, Range(0, 2 << 10)]
@@ -119,10 +120,9 @@ public class WallCreater : MonoBehaviour {
         };
 
         // 地形生成用のマップ i:y j:x
-        var map = new char[numVertex.x, numVertex.y];
-        for (int i = 0; i < numVertex.x; i++)
-            for (int j = 0; j < numVertex.y; j++)
-                map[i, j] = (char)0;
+        var map = new char[numVertex.x * numVertex.y];
+        for (int i = 0; i < map.Length; i++)
+            map[i] = (char)0;
 
         //for (int i = 0; i < numVertex.x; i++)
         //    for (int j = 0; j < numVertex.y; j++)
@@ -130,9 +130,9 @@ public class WallCreater : MonoBehaviour {
 
         //! 掴み位置を上下で隣接して配置するのは禁止
         //! 掴み位置が一か所に対して2つ隣接するのは禁止
-        for (int i = 0; i < numVertex.x; i++)
-            for (int j = 0; j < numVertex.y; j++)
-                if (i == numVertex.y / 2) map[i, j] = (char)WallChipID.Grippable;
+        //for (int i = 0; i < numVertex.x; i++)
+        //    for (int j = 0; j < numVertex.y; j++)
+        //        if (i == numVertex.y / 2) map[i, j] = (char)WallChipID.Grippable;
 
         //for (int i = 0; i < numVertex.y; i++)
         //    for (int j = 0; j < numVertex.x; j++)
@@ -163,7 +163,7 @@ public class WallCreater : MonoBehaviour {
         // 掴み位置特性の付加
         var lineList = gameObject.GetComponentsInChildren<LineRenderer>();
 
-        System.Func<Vector3, Vector3, Vector3, Vector2Int, int> calcCellIndex =
+        System.Func<Vector3, Vector3, Vector3, Vector2Int, Vector2> calcCellPos =
             (Vector3 linePos, Vector3 offset, Vector3 size, Vector2Int num) =>
         { 
             Vector2 cellPos = linePos - offset;
@@ -172,31 +172,56 @@ public class WallCreater : MonoBehaviour {
             cellPos.y += size.y / 2;
             cellPos.y /= size.y / num.y;
 
-            return calcIndex((int)cellPos.x, (int)cellPos.y, num.x, num.y); // 頂点インデックスに変換する
+            return cellPos; // 頂点インデックスに変換する
         };
 
-        for (int i = 0; i < lineList.Length; i++) // 次の頂点も同時に参照するため -1
+        var grippableIndexes = new List<int>();
+        for (int i = 0; i < lineList.Length; i++) 
         {
             Vector3[] posList = new Vector3[lineList[i].positionCount];
             lineList[i].GetPositions(posList);
-            for (int j = 0; j < posList.Length; j++)
+            for (int j = 0; j < posList.Length - 1; j++) // 次の頂点も同時に参照するため -1
             {
-                int tempIndex0 = calcCellIndex(posList[j], gameObject.transform.position, wallSize, numVertex);
-                Debug.Assert(tempIndex0 != -1);
-                vertices[tempIndex0] += Vector3.back * grippableBumpySize[0] * 100;    // verticesの配置はx, yが逆
+                for (int hoge = 0; hoge < 10000; hoge++)
+                {
+                    var cellPos = calcCellPos(Vector2.Lerp(posList[j], posList[j + 1], hoge / 10000f), gameObject.transform.position, wallSize, numVertex);
+                    var tempIndex0 = calcIndex((int)cellPos.x, (int)cellPos.y, numVertex.x, numVertex.y);
+                    Debug.Assert(tempIndex0 != -1);
 
-                //int loop = 100;
-                //for (int hoge = 0; hoge < loop; hoge++)
-                //{
-                //    var tempPos = Vector2.Lerp(cellPos, cellPos1, hoge / (float)loop);
-                //    var indexxx = calcIndex((int)tempPos.x, (int)tempPos.y, numVertex.x, numVertex.y); // 頂点インデックスに変換する
-                //    Debug.Assert(indexxx != -1);
-                //    vertices[indexxx] += Vector3.back * grippableBumpySize[0];
-                //}
+                    if (map[tempIndex0] == (char)WallChipID.Grippable) continue;
 
+                    var tempIndexTop = calcIndex((int)cellPos.x, (int)cellPos.y + 1, numVertex.x, numVertex.y);
+                    if (tempIndexTop == -1) continue;
+                    var tempIndexBottom = calcIndex((int)cellPos.x, (int)cellPos.y - 1, numVertex.x, numVertex.y);
+                    if (tempIndexBottom == -1) continue;
+
+                    map[tempIndex0] = (char)WallChipID.Grippable;
+                    map[tempIndexBottom] = (char)WallChipID.WallReverse;
+
+
+                    map[tempIndexTop] = Random.Range(0, 2) < 1 ? (char)WallChipID.Wall : (char) WallChipID.Ground;
+
+                    //vertices[tempIndex0] += Vector3.back * grippableBumpySize[0];    // verticesの配置はx, yが逆
+                }
             }
         }
 
+        // 掴み位置特性の付加
+        var grippableList = new List<List<int>>();
+        grippableList.Add(new List<int>());
+        for (int j = 0; j < numVertex.y; j++)
+        {
+            grippableList.Add(new List<int>());
+            for (int i = 0; i < numVertex.x; i++)
+            {
+                int tempIndex0 = calcIndex(i, j, numVertex.x, numVertex.y); // 頂点インデックスに変換する
+                Debug.Assert(tempIndex0 != -1);
+
+                if (map[tempIndex0] != (char)WallChipID.Grippable) continue;
+                vertices[tempIndex0] += Vector3.back * grippableBumpySize[0];    // verticesの配置はx, yが逆
+                grippableList[grippableList.Count - 1].Add(tempIndex0);
+            }
+        }
 
         for (int i = 0; i < numVertex.x; i++)
         {
@@ -213,7 +238,7 @@ public class WallCreater : MonoBehaviour {
             {
                 int tempIndex1 = calcIndex(i, j, numVertex.x, numVertex.y);
                 if (tempIndex1 == -1) continue;
-                if (map[i, j] != (char)WallChipID.WallReverse) continue;
+                if (map[tempIndex1] != (char)WallChipID.WallReverse) continue;
 
                 int tempIndex0 = calcIndex(i, j + 1, numVertex.x, numVertex.y); // 上のセルを調査
                 if (tempIndex0 == -1) continue;
@@ -229,7 +254,7 @@ public class WallCreater : MonoBehaviour {
             {
                 int tempIndex0 = calcIndex(i, j, numVertex.x, numVertex.y);
                 if (tempIndex0 == -1) continue;
-                if (map[i, j] != (char)WallChipID.Ground) continue;
+                if (map[tempIndex0] != (char)WallChipID.Ground) continue;
 
                 int tempIndex1 = calcIndex(i, j - 1, numVertex.x, numVertex.y);
                 if (tempIndex1 != -1) vertices[tempIndex0] = vertices[tempIndex1] + Vector3.back * vertices[tempIndex0].z;
@@ -237,24 +262,37 @@ public class WallCreater : MonoBehaviour {
             }
         }
 
-        //// 湾曲特性の付加
-        //float curveRadian = Mathf.PI / (numVertex.x - 1);
-        //for (int i = 0; i < numVertex.x; i++)
-        //{
-        //    for (int j = 0; j < numVertex.y; j++)
-        //    {
-        //        int tempIndex = calcIndex(i, j, numVertex.x, numVertex.y);
-        //        if (tempIndex == -1) continue;
-        //        vertices[tempIndex] = Quaternion.AngleAxis((Mathf.Rad2Deg * curveRadian) * i, Vector3.down) * vertices[tempIndex];
-        //    }
-        //}
-       
-        for (int i = 0; i < lineList.Length; i++) // 次の頂点も同時に参照するため -1
+        // 壁特性の付加
+        for (int i = 0; i < numVertex.x; i++)
         {
-            Vector3[] posList = new Vector3[lineList[i].positionCount];
-            lineList[i].GetPositions(posList);
-            for (int j = 0; j < posList.Length - 1; j++)
-                GrippablePoint2.CreateEdges(posList[j], posList[j + 1]);
+            for (int j = 0; j < numVertex.y; j++)
+            {
+                int tempIndex0 = calcIndex(i, j, numVertex.x, numVertex.y);
+                if (tempIndex0 == -1) continue;
+                if (map[tempIndex0] != (char)WallChipID.Wall) continue;
+
+                int tempIndex1 = calcIndex(i, j - 1, numVertex.x, numVertex.y);
+                if (tempIndex1 != -1) vertices[tempIndex0] = new Vector3(vertices[tempIndex0].x, vertices[tempIndex0].y, vertices[tempIndex1].z + grippableBumpySize[2]);
+            }
+        }
+
+
+        // 湾曲特性の付加
+        float curveRadian = -Mathf.PI / (numVertex.x - 1) / 5;
+        for (int i = 0; i < numVertex.x; i++)
+        {
+            for (int j = 0; j < numVertex.y; j++)
+            {
+                int tempIndex = calcIndex(i, j, numVertex.x, numVertex.y);
+                if (tempIndex == -1) continue;
+                vertices[tempIndex] = Quaternion.AngleAxis((Mathf.Rad2Deg * curveRadian) * i, Vector3.down) * vertices[tempIndex];
+            }
+        }
+
+        for (int i = 0; i < grippableList.Count; i++) // 次の頂点も同時に参照するため -1
+        {
+            for (int j = 0; j < grippableList[i].Count - 1; j++)
+                GrippablePoint2.CreateEdges(vertices[grippableList[i][j]], vertices[grippableList[i][j+1]]);
         }
 
         // メッシュへの反映
