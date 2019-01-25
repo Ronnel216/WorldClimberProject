@@ -61,7 +61,6 @@ static public class ClimberMethod
         Vector3 basePos = grippableArea.transform.position;
         foreach (var collider in grippableArea.Colliders)
         {
-
             Vector3 point = collider.ClosestPoint(basePos + moveDir);
 
             // 移動入力方向に存在しない
@@ -82,8 +81,6 @@ static public class ClimberMethod
 
     static public Collider SetGrippablePoint(ref GrippablePoint2 currentGripping, Collider nextGrippingCollider)
     {        
-        Debug.Log("Ok Grip");
-
         // 現在掴んでいる場所から離れる
         if (currentGripping != null)
         {

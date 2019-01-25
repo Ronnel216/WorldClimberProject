@@ -25,6 +25,8 @@
 	{
 		half d = dot(s.Normal, fixed3(0, 1, 0))* 0.5 + 0.5;
 		fixed3 ramp = tex2D(_RampTex, fixed2(d, 0.5)).rgb;
+		ramp = ramp + dot(s.Normal, lightDir);
+		ramp = ramp / 2;
 		fixed4 c;
 		c.rgb = s.Albedo * _LightColor0.rgb * ramp;
 		c.a = 0;

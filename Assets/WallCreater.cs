@@ -312,6 +312,10 @@ public class WallCreater : MonoBehaviour {
 
         var filter = GetComponent<MeshFilter>();
         filter.sharedMesh = mesh;
+
+        // 仮
+        var collider = GetComponent<MeshCollider>();
+        collider.sharedMesh = mesh;
         
     }
 	
