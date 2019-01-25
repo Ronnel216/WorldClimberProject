@@ -8,7 +8,7 @@ using UnityEngine;
 static public class ClimberMethod
 {
     // 汎用 ---------------
-    static void Swap<Type>(ref Type a, ref Type b)
+    static public void Swap<Type>(ref Type a, ref Type b)
     {
         Type c = a;
         a = b;
@@ -20,6 +20,11 @@ static public class ClimberMethod
         Vector3 result = vec;
         Swap(ref result.y, ref result.z);
         return result;
+    }
+
+    static public Vector3 CalcMixVector(Vector3 a, Vector3 b, float aPerAll)
+    {
+        return a * aPerAll + b * (1 - aPerAll);
     }
 
     // 専用 ---------------
@@ -79,7 +84,7 @@ static public class ClimberMethod
 
     }
 
-    static public Collider SetGrippablePoint(ref GrippablePoint2 currentGripping, Collider nextGrippingCollider)
+    static public Collider ChangeGrippablePoint(ref GrippablePoint2 currentGripping, Collider nextGrippingCollider)
     {        
         // 現在掴んでいる場所から離れる
         if (currentGripping != null)
@@ -90,6 +95,11 @@ static public class ClimberMethod
         currentGripping = nextGrippingCollider.gameObject.GetComponent<GrippablePoint2>();
         currentGripping.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
         return nextGrippingCollider;
+    }
+
+    static public void ReleaseGrippablePoint(ref GrippablePoint2 currentGripping)
+    {
+        currentGripping.gameObject.layer = LayerMask.NameToLayer("GrippingPoint");
     }
 
     // 二つの座標から回転姿勢を求める
@@ -169,5 +179,35 @@ static public class ClimberMethod
     static public float CalcHandToHandMagnitude(GameObject hand0, GameObject hand1)
     {
         return (hand0.transform.position - hand1.transform.position).magnitude;
+    }
+
+    static public float CalcJumpPower(float currentTime, float maxTime, float maxJumpPowerFactor, float baseJumpPower)
+    {
+        return baseJumpPower * (maxJumpPowerFactor * currentTime / maxTime);
+    }
+
+    static public Vector3 CalcJumpDir(Vector3 baseJumpDir, Vector3 inputMovement, float shotControlFactor, Vector3 wallDir)
+    {
+        var shotDir = inputMovement;
+        shotDir.z = 0.0f;
+        ClimberMethod.Swap(ref shotDir.y, ref shotDir.z);
+
+        // 現在掴んでいる壁の方向に飛べない
+        if (Vector3.Dot(wallDir, shotDir) <= 0)
+        {
+            shotDir = Vector3.zero;
+        }
+
+        var result = ClimberMethod.CalcMixVector(shotDir, baseJumpDir, shotControlFactor);
+        result.Normalize();
+
+        return result;
+    }
+
+    static public void Jump(Vector3 jumpDir, Rigidbody rigid, ref GrippablePoint2 grippablePoint, float jumpPower)
+    {
+        rigid.AddForce(jumpDir * jumpPower, ForceMode.Impulse);
+        ClimberMethod.ReleaseGrippablePoint(ref grippablePoint);
+
     }
 }

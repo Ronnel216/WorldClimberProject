@@ -29,6 +29,11 @@ public class ClimbingSystem : MonoBehaviour {
         // ベースジャンプ力
         public float baseJumpPower = 1000f;
 
+        [Range(0.001f, 1f - 0.001f)]
+        public float shotControlFactor = 0.3f;
+
+        public float airControlVelocity = 0.1f;
+
         // 最大ジャンプ力の増加量
         [Range(1f, Mathf.Infinity)]
         public float maxJumpPowerFactor = 1.5f;
@@ -200,6 +205,22 @@ public class ClimbingSystem : MonoBehaviour {
 
         public void FixedUpdate(ClimbingSystem system)
         {
+            var inputMovement = ClimberMethod.GetInputMovement3D();
+            inputMovement.z = 0f;
+            ClimberMethod.Swap(ref inputMovement.y, ref inputMovement.z);
+            if (inputMovement.sqrMagnitude > Mathf.Epsilon)
+            {
+                system.rigid.AddForce(inputMovement * system.level.airControlVelocity, ForceMode.Impulse);
+            }
+
+            {
+                //! デバッグ用　舞空術
+                if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.Space))
+                {
+                    system.rigid.AddForce(Vector3.up * 0.8f, ForceMode.VelocityChange);
+                }
+            }
+
             var nearGripColi = ClimberMethod.CheckGripPoint(
                 system.rigid.velocity.normalized,
                 system.nearGrippable,
@@ -208,7 +229,7 @@ public class ClimbingSystem : MonoBehaviour {
             if (nearGripColi != null)
             {
                 system.grippablePoint = system.nearGrippable.GetComponent<GrippablePoint2>();
-                system.grippingCollider = ClimberMethod.SetGrippablePoint(ref system.grippablePoint, nearGripColi);
+                system.grippingCollider = ClimberMethod.ChangeGrippablePoint(ref system.grippablePoint, nearGripColi);
 
                 system.ChangeState(new GrippingWallState());
             }
@@ -279,15 +300,13 @@ public class ClimbingSystem : MonoBehaviour {
                 //Gizmos.DrawWireSphere(system.nearGrippable.transform.position);
             });
 
-            if (Input.GetKey(KeyCode.LeftShift))
+            if (Input.GetKeyDown(KeyCode.Space))
             {
-                if (Input.GetKeyDown(KeyCode.Space))
-                {
-                    var jumpDir = CameraController.direction * system.level.jumpingDirction;
-                    system.ChangeState(new AirState());
-                    float jumpPower = system.level.baseJumpPower * system.level.maxJumpPowerFactor;
-                    system.rigid.AddForce(jumpDir * jumpPower, ForceMode.Impulse);   
-                }
+                float jumpPower = ClimberMethod.CalcJumpPower(1f, 1f, system.level.maxJumpPowerFactor, system.level.baseJumpPower);
+                var jumpDir = ClimberMethod.CalcJumpDir(system.level.jumpingDirction, inputMovement, system.level.shotControlFactor, system.grippablePoint.GetWallDirection() * Vector3.forward);
+                ClimberMethod.Jump(jumpDir, system.rigid, ref system.grippablePoint, jumpPower);
+                system.ChangeState(new AirState());
+
                 return;
             }
 
@@ -335,7 +354,7 @@ public class ClimbingSystem : MonoBehaviour {
 
             if (nearGripColi != null)
             {
-                system.grippingCollider = ClimberMethod.SetGrippablePoint(ref system.grippablePoint, nearGripColi);
+                system.grippingCollider = ClimberMethod.ChangeGrippablePoint(ref system.grippablePoint, nearGripColi);
                 //system.handMovementMode = HandMovementMode.Catch;
                 system.isChange = true;
 
