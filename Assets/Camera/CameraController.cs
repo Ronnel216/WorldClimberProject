@@ -39,6 +39,10 @@ public class CameraController : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+
+        transform.position = target.transform.position + Vector3.back * 7 + Vector3.up * 4;
+
+        return;
         direction = gameObject.transform.rotation;
 
         float x = .0f;

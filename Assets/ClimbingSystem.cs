@@ -5,6 +5,11 @@ using UnityEngine;
 
 public class ClimbingSystem : MonoBehaviour {
 
+    void OnCollisionEnter()
+    {
+
+    }
+
     [System.Serializable]
     class LevelDesign
     {
@@ -164,6 +169,8 @@ public class ClimbingSystem : MonoBehaviour {
         callInOnDrawGizmos.Clear();
     }
 
+
+
     // ステートの汎用メソッド
     class StateUtility
     {
@@ -194,23 +201,42 @@ public class ClimbingSystem : MonoBehaviour {
         void FixedUpdate(ClimbingSystem system);
 
         void Update(ClimbingSystem system);
+
+        
     }
+
+    
 
     /// <summary>
     /// 空中で何も手を触れていない状態
     /// </summary>
     class AirState : InterfaceClimberState
     {
+        float jumpHoge = 0.0f;  // 仮の滞空中制御
+        float airTime = 0f;
+
         public void Init(ClimbingSystem system) { }
 
         public void FixedUpdate(ClimbingSystem system)
         {
+            if (jumpHoge >= 0f && jumpHoge <= 1.0f)
+            {
+                if (Input.GetKey(KeyCode.Space))
+                {
+                    jumpHoge += Time.deltaTime;
+                    system.rigid.AddForce(Vector3.up * 5, ForceMode.Impulse);
+                }
+                else jumpHoge = -1.0f;
+
+            }
+            
+
             var inputMovement = ClimberMethod.GetInputMovement3D();
             inputMovement.z = 0f;
             ClimberMethod.Swap(ref inputMovement.y, ref inputMovement.z);
             if (inputMovement.sqrMagnitude > Mathf.Epsilon)
             {
-                system.rigid.AddForce(inputMovement * system.level.airControlVelocity, ForceMode.Impulse);
+                system.rigid.AddForce(inputMovement * system.level.airControlVelocity, ForceMode.VelocityChange);
             }
 
             {
@@ -226,6 +252,8 @@ public class ClimbingSystem : MonoBehaviour {
                 system.nearGrippable,
                 system.level.ableInputGrippingLimitCos);
 
+            airTime += Time.deltaTime;
+            //if (airTime < 2f) return;
             if (nearGripColi != null)
             {
                 system.grippablePoint = system.nearGrippable.GetComponent<GrippablePoint2>();
@@ -236,7 +264,19 @@ public class ClimbingSystem : MonoBehaviour {
 
         }
 
-        public void Update(ClimbingSystem system) { }
+        public void Update(ClimbingSystem system)
+        {
+            //var inputMovement = ClimberMethod.GetInputMovement3D();
+            //if (Input.GetKeyDown(KeyCode.Space))
+            //{
+            //    float jumpPower = ClimberMethod.CalcJumpPower(1f, 1f, system.level.maxJumpPowerFactor, system.level.baseJumpPower);
+            //    var jumpDir = ClimberMethod.CalcJumpDir(system.level.jumpingDirction, inputMovement, system.level.shotControlFactor, system.grippablePoint.GetWallDirection() * Vector3.forward);
+            //    ClimberMethod.Jump(jumpDir, system.rigid, ref system.grippablePoint, jumpPower);
+            //    system.ChangeState(new AirState());
+            //}
+
+        }
+
     }
 
     /// <summary>
@@ -248,6 +288,8 @@ public class ClimbingSystem : MonoBehaviour {
         GameObject backHand;    // 進行方向と逆の手
 
         CharacterJoint grippingJoint = null;
+
+        float chargeJumppingTime = 0.0f;
 
         // Use this for initialization
         public void Init(ClimbingSystem system)
