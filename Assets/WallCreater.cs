@@ -282,7 +282,7 @@ public class WallCreater : MonoBehaviour {
 
 
         // 湾曲特性の付加
-        float curveRadian = -Mathf.PI / (numVertex.x - 1) / 5;
+        float curveRadian = -Mathf.PI / (numVertex.x - 1) / 4;
         for (int i = 0; i < numVertex.x; i++)
         {
             for (int j = 0; j < numVertex.y; j++)

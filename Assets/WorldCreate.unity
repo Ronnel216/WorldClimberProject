@@ -518,6 +518,7 @@ GameObject:
   - component: {fileID: 692059061}
   - component: {fileID: 692059060}
   - component: {fileID: 692059059}
+  - component: {fileID: 692059063}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -581,13 +582,29 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 692059058}
-  m_LocalRotation: {x: -0.07898997, y: 0.42101005, z: 0.03683362, w: 0.90285903}
-  m_LocalPosition: {x: 1.2, y: 9, z: -25}
+  m_LocalRotation: {x: 0.08715578, y: 0, z: 0, w: 0.9961947}
+  m_LocalPosition: {x: 1.2, y: 9, z: -19.7}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: -10, y: 50, z: 0}
+  m_LocalEulerAnglesHint: {x: 10, y: 0, z: 0}
+--- !u!114 &692059063
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 692059058}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c65a252e99f744148a4c780b90f34de2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  target: {fileID: 1761719689}
+  distanceToTarget: 5
+  maxCameraSpd: 0.5
+  controllableAreaHalfY: 0.8
+  limitControlSpringPower: 1
 --- !u!1 &756412544
 GameObject:
   m_ObjectHideFlags: 0
@@ -1459,8 +1476,8 @@ MonoBehaviour:
     handMovement: 0.5
     handMovementSpdFactor: 0.04
     ableInputMovementLimitCos: 0.2
-    ableInputGrippingLimitCos: 0.8
-    baseJumpPower: 200
+    ableInputGrippingLimitCos: 0.138
+    baseJumpPower: 400
     shotControlFactor: 0.3
     airControlVelocity: 0.1
     maxJumpPowerFactor: 1.5
