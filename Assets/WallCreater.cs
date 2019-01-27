@@ -282,16 +282,16 @@ public class WallCreater : MonoBehaviour {
 
 
         // 湾曲特性の付加
-        float curveRadian = -Mathf.PI / (numVertex.x - 1) / 4;
-        for (int i = 0; i < numVertex.x; i++)
-        {
-            for (int j = 0; j < numVertex.y; j++)
-            {
-                int tempIndex = calcIndex(i, j, numVertex.x, numVertex.y);
-                if (tempIndex == -1) continue;
-                vertices[tempIndex] = Quaternion.AngleAxis((Mathf.Rad2Deg * curveRadian) * i, Vector3.down) * vertices[tempIndex];
-            }
-        }
+        //float curveRadian = -Mathf.PI / (numVertex.x - 1) / 4;
+        //for (int i = 0; i < numVertex.x; i++)
+        //{
+        //    for (int j = 0; j < numVertex.y; j++)
+        //    {
+        //        int tempIndex = calcIndex(i, j, numVertex.x, numVertex.y);
+        //        if (tempIndex == -1) continue;
+        //        vertices[tempIndex] = Quaternion.AngleAxis((Mathf.Rad2Deg * curveRadian) * i, Vector3.down) * vertices[tempIndex];
+        //    }
+        //}
 
         for (int i = 0; i < grippableList.Count; i++) // 次の頂点も同時に参照するため -1
         {
