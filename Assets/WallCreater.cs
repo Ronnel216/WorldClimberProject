@@ -201,9 +201,14 @@ public class WallCreater : MonoBehaviour {
 
                     map[tempIndexTop] = true ? (char)WallChipID.Wall : (char) WallChipID.Ground;
 
-                    map[calcIndex((int)cellPos.x - 1, (int)cellPos.y + 1, numVertex.x, numVertex.y)] = (char)WallChipID.Wall;
-                    map[calcIndex((int)cellPos.x + 1, (int)cellPos.y + 1, numVertex.x, numVertex.y)] = (char)WallChipID.Wall;
-                    map[calcIndex((int)cellPos.x, (int)cellPos.y + 2, numVertex.x, numVertex.y)] = (char)WallChipID.Wall;
+
+                    int wallIndex = 0;
+                    wallIndex = calcIndex((int)cellPos.x - 1, (int)cellPos.y + 1, numVertex.x, numVertex.y);
+                    if (wallIndex != -1) map[wallIndex] = (char)WallChipID.Wall;
+                    wallIndex = calcIndex((int)cellPos.x + 1, (int)cellPos.y + 1, numVertex.x, numVertex.y);
+                    if (wallIndex != -1) map[wallIndex] = (char)WallChipID.Wall;
+                    wallIndex = calcIndex((int)cellPos.x, (int)cellPos.y + 2, numVertex.x, numVertex.y);
+                    if (wallIndex != -1) map[wallIndex] = (char)WallChipID.Wall;
 
                     //vertices[tempIndex0] += Vector3.back * grippableBumpySize[0];    // verticesの配置はx, yが逆
                 }
