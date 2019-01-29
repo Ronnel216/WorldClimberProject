@@ -29,6 +29,10 @@ public class WallCreater : MonoBehaviour {
     [SerializeField]
     Vector2 cellSizeFactor = new Vector2(1, 1);
 
+    // 左上右下     左上:targetsA 右下:targetsB
+    [SerializeField]
+    WallConnecter[] connecters = new WallConnecter[4];
+
     // 0:出っ張り具合 
     // 1:出っ張り位置の下のへっこみ具合
     [SerializeField]
@@ -296,7 +300,7 @@ public class WallCreater : MonoBehaviour {
         //        if (tempIndex == -1) continue;
         //        vertices[tempIndex] = Quaternion.AngleAxis((Mathf.Rad2Deg * curveRadian) * i, Vector3.down) * vertices[tempIndex];
         //    }
-        //}
+        //}        
 
         for (int i = 0; i < grippableList.Count; i++) // 次の頂点も同時に参照するため -1
         {
@@ -306,6 +310,48 @@ public class WallCreater : MonoBehaviour {
 
         // メッシュへの反映
         mesh.vertices = vertices;
+
+        for (int dir = 0; dir < connecters.Length; dir++)
+        {
+            if (connecters[dir] == null) continue;
+
+            int[] indexes = null;
+            // 端の配列を作成　外に出してもいいかも
+            switch (dir)
+            {
+                case 0:
+                    indexes = new int[numVertex.y];
+                    for (int i = 0; i < numVertex.y; i++)
+                        indexes[i] = calcIndex(0, i, numVertex.x, numVertex.y);
+                    break;
+
+                case 1:
+                    indexes = new int[numVertex.x];
+                    for (int i = 0; i < numVertex.x; i++)
+                        indexes[i] = calcIndex(i, 0, numVertex.x, numVertex.y);
+                    break;
+                case 2:
+                    indexes = new int[numVertex.y];
+                    for (int i = 0; i < numVertex.y; i++)
+                        indexes[i] = calcIndex(numVertex.x - 1, i, numVertex.x, numVertex.y);
+                     
+                    break;
+                case 3:
+                    indexes = new int[numVertex.x];
+                    for (int i = 0; i < numVertex.x; i++)
+                        indexes[i] = calcIndex(i, numVertex.y - 1, numVertex.x, numVertex.y);
+                    break;
+
+                default:
+                    break;
+
+            }
+
+            connecters[dir].targetsIndex[dir == 0 ? 1 : 0] = indexes;
+            connecters[dir].targets[dir == 0 ? 1 : 0] = mesh;
+            connecters[dir].transforms[dir == 0 ? 1 : 0] = transform;
+            connecters[dir].Connect();
+        }
 
         mesh.RecalculateNormals();
         mesh.RecalculateBounds();
@@ -321,11 +367,11 @@ public class WallCreater : MonoBehaviour {
         // 仮
         var collider = GetComponent<MeshCollider>();
         collider.sharedMesh = mesh;
-        
+
     }
-	
-	// Update is called once per frame
-	void Update () {
+
+    // Update is called once per frame
+    void Update () {
 		
 	}
 
