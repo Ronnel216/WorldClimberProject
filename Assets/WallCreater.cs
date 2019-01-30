@@ -34,7 +34,8 @@ public class WallCreater : MonoBehaviour {
     WallConnecter[] connecters = new WallConnecter[4];
 
     // 0:出っ張り具合 
-    // 1:出っ張り位置の下のへっこみ具合
+    // 1:出っ張り位置の下のへこみ具合
+    // 2:出っ張り位置の上のへこみ具合
     [SerializeField]
     float[] grippableBumpySize = new float[2];
 
@@ -307,7 +308,12 @@ public class WallCreater : MonoBehaviour {
         for (int i = 0; i < grippableList.Count; i++) // 次の頂点も同時に参照するため -1
         {
             for (int j = 0; j < grippableList[i].Count - 1; j++)
-                GrippablePoint2.CreateEdges(vertices[grippableList[i][j]], vertices[grippableList[i][j+1]]);
+            {
+                Vector3[] worldVert = new Vector3[2] { vertices[grippableList[i][j]], vertices[grippableList[i][j + 1]] };
+                for (int worldVertI = 0; worldVertI < worldVert.Length; worldVertI++)
+                    worldVert[worldVertI] = transform.TransformPoint(worldVert[worldVertI]);
+                GrippablePoint2.CreateEdges(worldVert[0], worldVert[1]);
+            }
         }
 
         // メッシュへの反映
