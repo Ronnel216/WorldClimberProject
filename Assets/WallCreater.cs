@@ -41,23 +41,37 @@ public class WallCreater : MonoBehaviour {
 
     Vector3 wallSize = Vector3.zero;
 
-    // Use this for initialization
-    void Awake() {
+    public void Execute(int step)
+    {
+        /*
+         * 0:InitSize
+         * 1:InitRandState
+         * 2:CalcVertexNum
+         * 3:
+         * 
+         */
         wallSize = transform.lossyScale;
         transform.localScale = Vector3.one;
 
-        CreateMesh();
+        InitRandState();
+        var numVertex = CalcVertexNum();
+        Mesh mesh = CreateMesh(numVertex);
+        SetMeshAndRecalcRename(mesh);
+        // 仮
+        var collider = GetComponent<MeshCollider>();
+        collider.sharedMesh = mesh;
+
+        // 子をオブジェクト削除
+        foreach (Transform n in gameObject.transform)
+        {
+            GameObject.Destroy(n.gameObject);
+        }
+
+
     }
 
-    public void CreateMesh()
+    public void InitRandState()
     {
-        //// 面数に必要な分だけ確保
-        //vertNum = new Vector2Int(polyNum.x + 1, polyNum.y + 1);
-
-        //var filter = GetComponent<MeshFilter>();
-        //filter.sharedMesh = CreateMesh();             // CreateMeshはWorldCreaterの関数 コピペ
-        //AssetDatabase.CreateAsset(filter.sharedMesh, "Assets/Temp/"+ filter.sharedMesh.name +".asset");
-
         // 乱数のシード値表現について
 
         // 乱数初期化
@@ -67,6 +81,10 @@ public class WallCreater : MonoBehaviour {
 
         UnityEngine.Random.InitState(seed);
 
+    }
+
+    public Vector2Int CalcVertexNum()
+    {
         // 配置頂点
         // 全体頂点数
         int allNum = (int)Mathf.Sqrt(baseNumVertex);
@@ -76,6 +94,12 @@ public class WallCreater : MonoBehaviour {
             (int)(allNum * (wallSize.y / wallSize.x)));
 
         Debug.Log("頂点分配率 : " + numVertex);
+
+        return numVertex;
+    }
+
+    public Mesh CreateMesh(Vector2Int numVertex)
+    {
         var ver = new Vector2[numVertex.x * numVertex.y];
         Debug.Log("頂点数 : " + ver.Length);
 
@@ -361,31 +385,19 @@ public class WallCreater : MonoBehaviour {
             connecters[dir].Connect();
         }
 
+        return mesh;
+    }
+
+    public void SetMeshAndRecalcRename(Mesh mesh)
+    {
         mesh.RecalculateNormals();
         mesh.RecalculateBounds();
         mesh.RecalculateTangents();
         mesh.MarkDynamic();
         mesh.name = "OriginalWallMesh";
 
-        Debug.Log("頂点数 : " + mesh.vertices.Length);
-
         var filter = GetComponent<MeshFilter>();
         filter.sharedMesh = mesh;
-
-        // 仮
-        var collider = GetComponent<MeshCollider>();
-        collider.sharedMesh = mesh;
-
-        // 子をオブジェクト削除
-        foreach (Transform n in gameObject.transform)
-        {
-            GameObject.Destroy(n.gameObject);
-        }
     }
-
-    // Update is called once per frame
-    void Update () {
-		
-	}
 
 }
