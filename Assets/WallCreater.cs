@@ -46,11 +46,9 @@ public class WallCreater : MonoBehaviour {
     {
         return GetComponent<MeshFilter>().sharedMesh;
     }
-
-    public void Execute(int step)
+    bool threadCheckTest = false;
+    public bool Execute(int step)
     {
-        // 描画を有効化
-        GetComponent<MeshRenderer>().enabled = true;
 
         /*
          * 0:InitSize
@@ -59,34 +57,60 @@ public class WallCreater : MonoBehaviour {
          * 3:
          * 
          */
-        wallSize = transform.lossyScale;
-        transform.localScale = Vector3.one;
 
-        InitRandState();
-        var numVertex = CalcVertexNum();
-
-        List<List<int>> grippableList = null;
-        Mesh mesh = CreateMesh(numVertex, out grippableList);
-
-        // メッシュの設定　再計算　リネーム
-        SetMeshAndRecalcRename(mesh);
-
-        // それぞれ地形の接続
-        Connect(mesh, numVertex);
-
-        // 掴み位置の設定
-        CreateGripPoint(mesh.vertices, grippableList);
-
-        // コライダーの設定
-        var collider = GetComponent<MeshCollider>();
-        collider.sharedMesh = mesh;
-
-        // 子をオブジェクト削除
-        foreach (Transform n in gameObject.transform)
+        switch (step)
         {
-            GameObject.Destroy(n.gameObject);
+            case 0:
+                {
+                    GetComponent<MeshRenderer>().enabled = true;
+                    wallSize = transform.lossyScale;
+                    transform.localScale = Vector3.one;
+
+                    InitRandState();
+                }
+
+                break;
+            case 1:
+                {
+                    var numVertex = CalcVertexNum();
+
+                    List<List<int>> grippableList = null;
+                    Mesh mesh = CreateMesh(numVertex, out grippableList);
+
+                    // メッシュの設定　再計算　リネーム
+                    SetMeshAndRecalcRename(mesh);
+
+                    // それぞれ地形の接続
+                    Connect(mesh, numVertex);
+
+                    // 掴み位置の設定
+                    CreateGripPoint(mesh.vertices, grippableList);
+                }
+                break;
+            case 2:
+                {
+                    // コライダーの設定
+                    var collider = GetComponent<MeshCollider>();
+                    collider.sharedMesh = GetMesh();
+                }
+
+                break;
+            case 3:
+                {
+                    // 子をオブジェクト削除
+                    foreach (Transform n in gameObject.transform)
+                    {
+                        GameObject.Destroy(n.gameObject);
+                    }
+                }
+
+                break;
+            default:
+                return false;
+                
         }
 
+        return true;
     }
 
     private void Connect(Mesh mesh, Vector2Int numVertex)
@@ -296,6 +320,7 @@ public class WallCreater : MonoBehaviour {
                 }
             }
         }
+
 
         // 掴み位置特性の付加
         grippableList = new List<List<int>>();

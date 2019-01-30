@@ -7,7 +7,7 @@ public class WorldMaker : MonoBehaviour
 {
     [SerializeField]
     string wallCreaterTag = "Wall";
-
+    WallCreater[] wallCreaters = null;
 
     void Awake()
     {
@@ -16,7 +16,7 @@ public class WorldMaker : MonoBehaviour
     void Start()
     {
         var wallCreaterObjs = GameObject.FindGameObjectsWithTag(wallCreaterTag);
-        var wallCreaters = new WallCreater[wallCreaterObjs.Length];
+        wallCreaters = new WallCreater[wallCreaterObjs.Length];
 
         int i = 0;
         foreach (var obj in wallCreaterObjs)
@@ -27,15 +27,35 @@ public class WorldMaker : MonoBehaviour
             Debug.Assert(creater != null);
         }
 
-        foreach (var creater in wallCreaters)
-        {
-            creater.Execute(0);
-        }
+        //foreach (var creater in wallCreaters)
+        //{
+        //    for (i = 0; i < 4; i++)
+        //    {
+        //        creater.Execute(i);
+        //    }
+        //}
 
     }
+    int step = 0;
+    int createrId = 0;
 
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.A))
+        {
+            if (createrId >= wallCreaters.Length) return;
+            Debug.Log("Execute" + step + "Start");
+            var isExecuted = wallCreaters[createrId].Execute(step);
+            Debug.Log("Execute" + step + "Finished");
+            step++;
+
+            if (isExecuted == false)
+            {
+                step = 0;
+                createrId++;
+            }
+        }
+
         if (Input.GetKeyDown(KeyCode.Space))
         {
             var wallCreaterObjs = GameObject.FindGameObjectsWithTag(wallCreaterTag);
