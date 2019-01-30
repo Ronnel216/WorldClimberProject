@@ -41,9 +41,8 @@ public class WorldMaker : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.A))
+        if (createrId < wallCreaters.Length)
         {
-            if (createrId >= wallCreaters.Length) return;
             Debug.Log("Execute" + step + "Start");
             var isExecuted = wallCreaters[createrId].Execute(step);
             Debug.Log("Execute" + step + "Finished");
@@ -74,11 +73,6 @@ public class WorldMaker : MonoBehaviour
 
     void SaveMesh(Mesh mesh)
     {
-        //// 面数に必要な分だけ確保
-        //vertNum = new Vector2Int(polyNum.x + 1, polyNum.y + 1);
-
-        //var filter = GetComponent<MeshFilter>();
-        //filter.sharedMesh = CreateMesh();             // CreateMeshはWorldCreaterの関数 コピペ
         AssetDatabase.CreateAsset(mesh, "Assets/Temp/Walls/" + mesh.name + ".asset");
 
     }
@@ -86,7 +80,6 @@ public class WorldMaker : MonoBehaviour
     void SaveObject(GameObject obj)
     {
         PrefabUtility.CreatePrefab("Assets/Temp/Walls/" + obj.name + ".prefab", obj, ReplacePrefabOptions.Default); //? option合ってるかわからん
-        //AssetDatabase.CreateAsset(obj, "Assets/Temp/" + obj.name + ".prefab");
     }
 
 }

@@ -288,13 +288,14 @@ public class WallCreater : MonoBehaviour {
             lineList[i].GetPositions(posList);
             for (int j = 0; j < posList.Length - 1; j++) // 次の頂点も同時に参照するため -1
             {
-                for (int hoge = 0; hoge < 100000; hoge++)        //? ここの補間テキトウ
+                int lerpDivision = (int)(posList[j] - posList[j + 1]).sqrMagnitude;
+                for (int lerpStep = 0; lerpStep < lerpDivision; lerpStep++)
                 {
-                    var cellPos = calcCellPos(Vector2.Lerp(posList[j], posList[j + 1], hoge / 100000f), gameObject.transform.position, wallSize, numVertex);
+                    var cellPos = calcCellPos(Vector2.Lerp(posList[j], posList[j + 1], lerpStep / (float)lerpDivision), gameObject.transform.position, wallSize, numVertex);
                     var tempIndex0 = CalcIndex((int)cellPos.x, (int)cellPos.y, numVertex.x, numVertex.y);
                     Debug.Assert(tempIndex0 != -1);
 
-                    if (map[tempIndex0] == (char)WallChipID.Grippable) continue;
+                    //if (map[tempIndex0] == (char)WallChipID.Grippable) continue;
 
                     var tempIndexTop = CalcIndex((int)cellPos.x, (int)cellPos.y + 1, numVertex.x, numVertex.y);
                     if (tempIndexTop == -1) continue;
@@ -302,6 +303,13 @@ public class WallCreater : MonoBehaviour {
                     if (tempIndexBottom == -1) continue;
 
                     map[tempIndex0] = (char)WallChipID.Grippable;
+
+                    tempIndex0 = CalcIndex((int)cellPos.x + 1, (int)cellPos.y, numVertex.x, numVertex.y);
+                    if (tempIndex0 != -1) map[tempIndex0] = (char)WallChipID.Grippable;
+
+                    tempIndex0 = CalcIndex((int)cellPos.x - 1, (int)cellPos.y, numVertex.x, numVertex.y);
+                    if (tempIndex0 != -1) map[tempIndex0] = (char)WallChipID.Grippable;
+
                     map[tempIndexBottom] = (char)WallChipID.WallReverse;
 
 
