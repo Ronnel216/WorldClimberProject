@@ -394,7 +394,7 @@ GameObject:
   - component: {fileID: 367851526}
   m_Layer: 0
   m_Name: Wall (1)
-  m_TagString: Untagged
+  m_TagString: Wall
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -425,7 +425,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   seed: 0
-  baseNumVertex: 2000
+  baseNumVertex: 3000
   baseBumpy: 30
   noisecCycle: 18
   cellSizeFactor: {x: 0.2, y: 0.25}
@@ -486,7 +486,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 367851525}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 160.2, y: 0, z: 0}
+  m_LocalPosition: {x: 152.9, y: 0, z: 0}
   m_LocalScale: {x: 150, y: 100, z: 30}
   m_Children:
   - {fileID: 1955987167}
@@ -1001,21 +1001,12 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1039648746}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f28dc6f5f8053674a925aa3c08a2adb8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sizeControler:
-    max: 1
-    min: 1
-  independence:
-    max: 1
-    min: 1
-  complexity:
-    consistency: 0
-  fieldHalfSize: {x: 5, y: 5, z: 5}
-  cellSize: 1
+  wallCreaterTag: Wall
 --- !u!4 &1039648748
 Transform:
   m_ObjectHideFlags: 0
@@ -1326,7 +1317,7 @@ GameObject:
   - component: {fileID: 1350556614}
   m_Layer: 0
   m_Name: Wall
-  m_TagString: Untagged
+  m_TagString: Wall
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1343,7 +1334,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   seed: 0
-  baseNumVertex: 2000
+  baseNumVertex: 1000
   baseBumpy: 15
   noisecCycle: 18
   cellSizeFactor: {x: 0.2, y: 0.25}

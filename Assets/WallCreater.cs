@@ -49,6 +49,9 @@ public class WallCreater : MonoBehaviour {
 
     public void Execute(int step)
     {
+        // 描画を有効化
+        GetComponent<MeshRenderer>().enabled = true;
+
         /*
          * 0:InitSize
          * 1:InitRandState
@@ -168,13 +171,18 @@ public class WallCreater : MonoBehaviour {
         var vertices = mesh.vertices;
 
         // 配置に偏りを作る
-        for (int i = 0; i < vertices.Length; i++)
+        for (int x = 1; x < numVertex.x - 1; x++)
         {
-            float xRange = (wallSize.x / numVertex.x / 2) * cellSizeFactor.x;
-            float yRange = (wallSize.y / numVertex.y / 2) * cellSizeFactor.y;
+            for (int y = 1; y < numVertex.y - 1; y++)
+            {
+                int i = CalcIndex(x, y, numVertex.x, numVertex.y);
+                float xRange = (wallSize.x / numVertex.x / 2) * cellSizeFactor.x;
+                float yRange = (wallSize.y / numVertex.y / 2) * cellSizeFactor.y;
 
-            vertices[i] += new Vector3(UnityEngine.Random.Range(-xRange, xRange), UnityEngine.Random.Range(-yRange, yRange), 0f);
+                vertices[i] += new Vector3(UnityEngine.Random.Range(-xRange, xRange), UnityEngine.Random.Range(-yRange, yRange), 0f);
+            }
         }
+
 
         // メッシュ全体を立てる
         for (int i = 0; i < vertices.Length; i++)
@@ -186,7 +194,6 @@ public class WallCreater : MonoBehaviour {
             for (int y = 0; y < numVertex.y; y++)
             {
                 int i = CalcIndex(x, y, numVertex.x, numVertex.y);
-
                 float noise = Mathf.PerlinNoise(vertices[i].x / noisecCycle, vertices[i].y / noisecCycle);
                 vertices[i] += Vector3.forward * baseBumpy * noise;
             }
@@ -392,7 +399,7 @@ public class WallCreater : MonoBehaviour {
         mesh.RecalculateBounds();
         mesh.RecalculateTangents();
         mesh.MarkDynamic();
-        mesh.name = "OriginalWallMesh";
+        mesh.name = "WallMesh_" + gameObject.name;
 
         var filter = GetComponent<MeshFilter>();
         filter.sharedMesh = mesh;
