@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -55,9 +56,20 @@ public class WallCreater : MonoBehaviour {
 
         InitRandState();
         var numVertex = CalcVertexNum();
-        Mesh mesh = CreateMesh(numVertex);
+
+        List<List<int>> grippableList = null;
+        Mesh mesh = CreateMesh(numVertex, out grippableList);
+
+        // メッシュの設定　再計算　リネーム
         SetMeshAndRecalcRename(mesh);
-        // 仮
+
+        // それぞれ地形の接続
+        Connect(mesh, numVertex);
+
+        // 掴み位置の設定
+        CreateGripPoint(mesh.vertices, grippableList);
+
+        // コライダーの設定
         var collider = GetComponent<MeshCollider>();
         collider.sharedMesh = mesh;
 
@@ -67,7 +79,51 @@ public class WallCreater : MonoBehaviour {
             GameObject.Destroy(n.gameObject);
         }
 
+    }
 
+    private void Connect(Mesh mesh, Vector2Int numVertex)
+    {
+        for (int dir = 0; dir < connecters.Length; dir++)
+        {
+            if (connecters[dir] == null) continue;
+
+            int[] indexes = null;
+            // 端の配列を作成　外に出してもいいかも
+            switch (dir)
+            {
+                case 0:
+                    indexes = new int[numVertex.y];
+                    for (int i = 0; i < numVertex.y; i++)
+                        indexes[i] = CalcIndex(0, i, numVertex.x, numVertex.y);
+                    break;
+
+                case 1:
+                    indexes = new int[numVertex.x];
+                    for (int i = 0; i < numVertex.x; i++)
+                        indexes[i] = CalcIndex(i, 0, numVertex.x, numVertex.y);
+                    break;
+                case 2:
+                    indexes = new int[numVertex.y];
+                    for (int i = 0; i < numVertex.y; i++)
+                        indexes[i] = CalcIndex(numVertex.x - 1, i, numVertex.x, numVertex.y);
+
+                    break;
+                case 3:
+                    indexes = new int[numVertex.x];
+                    for (int i = 0; i < numVertex.x; i++)
+                        indexes[i] = CalcIndex(i, numVertex.y - 1, numVertex.x, numVertex.y);
+                    break;
+
+                default:
+                    break;
+
+            }
+
+            connecters[dir].targetsIndex[dir == 0 ? 1 : 0] = indexes;
+            connecters[dir].targets[dir == 0 ? 1 : 0] = mesh;
+            connecters[dir].transforms[dir == 0 ? 1 : 0] = transform;
+            connecters[dir].Connect();
+        }
     }
 
     public void InitRandState()
@@ -98,44 +154,23 @@ public class WallCreater : MonoBehaviour {
         return numVertex;
     }
 
-    public Mesh CreateMesh(Vector2Int numVertex)
+    public Mesh CreateMesh(Vector2Int numVertex, out List<List<int>> grippableList)
     {
-        var ver = new Vector2[numVertex.x * numVertex.y];
-        Debug.Log("頂点数 : " + ver.Length);
+        // ベースのメッシュを生成
+        Mesh mesh = CreateBaseMesh(numVertex);
 
-        // 頂点の配置
-        int index = 0;
-        for (int i = 0; i < numVertex.x; i++)
+        // 壁のベースとして調整 ---------------
+        var vertices = mesh.vertices;
+
+        // 配置に偏りを作る
+        for (int i = 0; i < vertices.Length; i++)
         {
-            for (int j = 0; j < numVertex.y; j++)
-            {
-                //if (i == 0 || j == 0 || i == numVertex.x - 1 || j == numVertex.y - 1) continue;
+            float xRange = (wallSize.x / numVertex.x / 2) * cellSizeFactor.x;
+            float yRange = (wallSize.y / numVertex.y / 2) * cellSizeFactor.y;
 
-                Vector2 offset = new Vector2((float)i / numVertex.x, (float)j / numVertex.y);
-                Vector2 addjust = new Vector2(
-                    wallSize.x / (numVertex.x - 1),
-                    wallSize.y / (numVertex.y - 1));  // 範囲調整用 i, j は(ループ回数-1)までの値しかとらないため
-                offset.x *= wallSize.x + addjust.x;
-                offset.y *= wallSize.y + addjust.y;
-                offset += new Vector2(-wallSize.x / 2, -wallSize.y / 2);    // 中心に移動
-                ver[index] = offset;
-
-                // 配置に偏りを作る
-                float xRange = (wallSize.x / numVertex.x / 2) * cellSizeFactor.x;
-                float yRange = (wallSize.y / numVertex.y / 2) * cellSizeFactor.y;
-                ver[index] += new Vector2(UnityEngine.Random.Range(-xRange, xRange), UnityEngine.Random.Range(-yRange, yRange));
-
-                // 添字進行
-                index++;
-            }
+            vertices[i] += new Vector3(UnityEngine.Random.Range(-xRange, xRange), UnityEngine.Random.Range(-yRange, yRange), 0f);
         }
 
-        // メッシュの生成
-        var triangulator = new DelaunyTriangulation.Triangulator();
-        Mesh mesh = triangulator.CreateInfluencePolygon(ver);
-
-        // 壁のベースとして調整
-        var vertices = mesh.vertices;
         for (int i = 0; i < vertices.Length; i++)
         {
             float noise = Mathf.PerlinNoise(vertices[i].x / noisecCycle, vertices[i].z / noisecCycle);
@@ -143,12 +178,7 @@ public class WallCreater : MonoBehaviour {
             vertices[i] = Quaternion.AngleAxis(90f, Vector3.left) * vertices[i];
         }
 
-        // indexを求める 不正値の場合は -1
-        System.Func<int, int, int, int, int> calcIndex = (int i, int j, int xSize, int ySize) => {
-            if (j < 0 && ySize <= j && i < 0 && xSize <= i) return -1;
-            var result = j + i * ySize;
-            return result;
-        };
+        // 特性の付加 --------------------------
 
         // 地形生成用のマップ i:y j:x
         var map = new char[numVertex.x * numVertex.y];
@@ -179,7 +209,7 @@ public class WallCreater : MonoBehaviour {
         //{ 
         //    for (int j = 0; j < numVertex.y; j++)
         //    {
-        //        int tempIndex0 = calcIndex(i, j, numVertex.x, numVertex.y); // 頂点インデックスに変換する
+        //        int tempIndex0 = CalcIndex(i, j, numVertex.x, numVertex.y); // 頂点インデックスに変換する
         //        Debug.Assert(tempIndex0 != -1);
 
         //        if (map[i, j] != (char)WallChipID.Grippable) continue;
@@ -213,17 +243,17 @@ public class WallCreater : MonoBehaviour {
             lineList[i].GetPositions(posList);
             for (int j = 0; j < posList.Length - 1; j++) // 次の頂点も同時に参照するため -1
             {
-                for (int hoge = 0; hoge < 10000; hoge++)
+                for (int hoge = 0; hoge < 10000; hoge++)        //? ここの補間テキトウ
                 {
                     var cellPos = calcCellPos(Vector2.Lerp(posList[j], posList[j + 1], hoge / 10000f), gameObject.transform.position, wallSize, numVertex);
-                    var tempIndex0 = calcIndex((int)cellPos.x, (int)cellPos.y, numVertex.x, numVertex.y);
+                    var tempIndex0 = CalcIndex((int)cellPos.x, (int)cellPos.y, numVertex.x, numVertex.y);
                     Debug.Assert(tempIndex0 != -1);
 
                     if (map[tempIndex0] == (char)WallChipID.Grippable) continue;
 
-                    var tempIndexTop = calcIndex((int)cellPos.x, (int)cellPos.y + 1, numVertex.x, numVertex.y);
+                    var tempIndexTop = CalcIndex((int)cellPos.x, (int)cellPos.y + 1, numVertex.x, numVertex.y);
                     if (tempIndexTop == -1) continue;
-                    var tempIndexBottom = calcIndex((int)cellPos.x, (int)cellPos.y - 1, numVertex.x, numVertex.y);
+                    var tempIndexBottom = CalcIndex((int)cellPos.x, (int)cellPos.y - 1, numVertex.x, numVertex.y);
                     if (tempIndexBottom == -1) continue;
 
                     map[tempIndex0] = (char)WallChipID.Grippable;
@@ -234,11 +264,11 @@ public class WallCreater : MonoBehaviour {
 
 
                     int wallIndex = 0;
-                    wallIndex = calcIndex((int)cellPos.x - 1, (int)cellPos.y + 1, numVertex.x, numVertex.y);
+                    wallIndex = CalcIndex((int)cellPos.x - 1, (int)cellPos.y + 1, numVertex.x, numVertex.y);
                     if (wallIndex != -1) map[wallIndex] = (char)WallChipID.Wall;
-                    wallIndex = calcIndex((int)cellPos.x + 1, (int)cellPos.y + 1, numVertex.x, numVertex.y);
+                    wallIndex = CalcIndex((int)cellPos.x + 1, (int)cellPos.y + 1, numVertex.x, numVertex.y);
                     if (wallIndex != -1) map[wallIndex] = (char)WallChipID.Wall;
-                    wallIndex = calcIndex((int)cellPos.x, (int)cellPos.y + 2, numVertex.x, numVertex.y);
+                    wallIndex = CalcIndex((int)cellPos.x, (int)cellPos.y + 2, numVertex.x, numVertex.y);
                     if (wallIndex != -1) map[wallIndex] = (char)WallChipID.Wall;
 
                     //vertices[tempIndex0] += Vector3.back * grippableBumpySize[0];    // verticesの配置はx, yが逆
@@ -247,14 +277,14 @@ public class WallCreater : MonoBehaviour {
         }
 
         // 掴み位置特性の付加
-        var grippableList = new List<List<int>>();
+        grippableList = new List<List<int>>();
         grippableList.Add(new List<int>());
         for (int j = 0; j < numVertex.y; j++)
         {
             grippableList.Add(new List<int>());
             for (int i = 0; i < numVertex.x; i++)
             {
-                int tempIndex0 = calcIndex(i, j, numVertex.x, numVertex.y); // 頂点インデックスに変換する
+                int tempIndex0 = CalcIndex(i, j, numVertex.x, numVertex.y); // 頂点インデックスに変換する
                 Debug.Assert(tempIndex0 != -1);
 
                 if (map[tempIndex0] != (char)WallChipID.Grippable) continue;
@@ -263,24 +293,16 @@ public class WallCreater : MonoBehaviour {
             }
         }
 
-        for (int i = 0; i < numVertex.x; i++)
-        {
-            for (int j = 0; j < numVertex.y; j++)
-            {
-                
-            }
-        }
-
         // 逆壁特性の付加
         for (int i = 0; i < numVertex.x; i++)
         {
             for (int j = 0; j < numVertex.y; j++)
             {
-                int tempIndex1 = calcIndex(i, j, numVertex.x, numVertex.y);
+                int tempIndex1 = CalcIndex(i, j, numVertex.x, numVertex.y);
                 if (tempIndex1 == -1) continue;
                 if (map[tempIndex1] != (char)WallChipID.WallReverse) continue;
 
-                int tempIndex0 = calcIndex(i, j + 1, numVertex.x, numVertex.y); // 上のセルを調査
+                int tempIndex0 = CalcIndex(i, j + 1, numVertex.x, numVertex.y); // 上のセルを調査
                 if (tempIndex0 == -1) continue;
 
                 vertices[tempIndex1] = new Vector3(vertices[tempIndex1].x, vertices[tempIndex1].y, vertices[tempIndex0].z + grippableBumpySize[1]);
@@ -292,11 +314,11 @@ public class WallCreater : MonoBehaviour {
         {
             for (int j = 0; j < numVertex.y; j++)
             {
-                int tempIndex0 = calcIndex(i, j, numVertex.x, numVertex.y);
+                int tempIndex0 = CalcIndex(i, j, numVertex.x, numVertex.y);
                 if (tempIndex0 == -1) continue;
                 if (map[tempIndex0] != (char)WallChipID.Ground) continue;
 
-                int tempIndex1 = calcIndex(i, j - 1, numVertex.x, numVertex.y);
+                int tempIndex1 = CalcIndex(i, j - 1, numVertex.x, numVertex.y);
                 if (tempIndex1 != -1) vertices[tempIndex0] = vertices[tempIndex1] + Vector3.back * vertices[tempIndex0].z;
 
             }
@@ -307,11 +329,11 @@ public class WallCreater : MonoBehaviour {
         {
             for (int j = 0; j < numVertex.y; j++)
             {
-                int tempIndex0 = calcIndex(i, j, numVertex.x, numVertex.y);
+                int tempIndex0 = CalcIndex(i, j, numVertex.x, numVertex.y);
                 if (tempIndex0 == -1) continue;
                 if (map[tempIndex0] != (char)WallChipID.Wall) continue;
 
-                int tempIndex1 = calcIndex(i, j - 1, numVertex.x, numVertex.y);
+                int tempIndex1 = CalcIndex(i, j - 1, numVertex.x, numVertex.y);
                 if (tempIndex1 != -1) vertices[tempIndex0] = new Vector3(vertices[tempIndex0].x, vertices[tempIndex0].y, vertices[tempIndex1].z + grippableBumpySize[2]);
             }
         }
@@ -323,12 +345,21 @@ public class WallCreater : MonoBehaviour {
         //{
         //    for (int j = 0; j < numVertex.y; j++)
         //    {
-        //        int tempIndex = calcIndex(i, j, numVertex.x, numVertex.y);
+        //        int tempIndex = CalcIndex(i, j, numVertex.x, numVertex.y);
         //        if (tempIndex == -1) continue;
         //        vertices[tempIndex] = Quaternion.AngleAxis((Mathf.Rad2Deg * curveRadian) * i, Vector3.down) * vertices[tempIndex];
         //    }
         //}        
 
+
+        // メッシュへの反映
+        mesh.vertices = vertices;
+
+        return mesh;
+    }
+
+    public void CreateGripPoint(Vector3[] vertices, List<List<int>> grippableList)
+    {
         for (int i = 0; i < grippableList.Count; i++) // 次の頂点も同時に参照するため -1
         {
             for (int j = 0; j < grippableList[i].Count - 1; j++)
@@ -339,53 +370,6 @@ public class WallCreater : MonoBehaviour {
                 GrippablePoint2.CreateEdges(worldVert[0], worldVert[1]);
             }
         }
-
-        // メッシュへの反映
-        mesh.vertices = vertices;
-
-        for (int dir = 0; dir < connecters.Length; dir++)
-        {
-            if (connecters[dir] == null) continue;
-
-            int[] indexes = null;
-            // 端の配列を作成　外に出してもいいかも
-            switch (dir)
-            {
-                case 0:
-                    indexes = new int[numVertex.y];
-                    for (int i = 0; i < numVertex.y; i++)
-                        indexes[i] = calcIndex(0, i, numVertex.x, numVertex.y);
-                    break;
-
-                case 1:
-                    indexes = new int[numVertex.x];
-                    for (int i = 0; i < numVertex.x; i++)
-                        indexes[i] = calcIndex(i, 0, numVertex.x, numVertex.y);
-                    break;
-                case 2:
-                    indexes = new int[numVertex.y];
-                    for (int i = 0; i < numVertex.y; i++)
-                        indexes[i] = calcIndex(numVertex.x - 1, i, numVertex.x, numVertex.y);
-                     
-                    break;
-                case 3:
-                    indexes = new int[numVertex.x];
-                    for (int i = 0; i < numVertex.x; i++)
-                        indexes[i] = calcIndex(i, numVertex.y - 1, numVertex.x, numVertex.y);
-                    break;
-
-                default:
-                    break;
-
-            }
-
-            connecters[dir].targetsIndex[dir == 0 ? 1 : 0] = indexes;
-            connecters[dir].targets[dir == 0 ? 1 : 0] = mesh;
-            connecters[dir].transforms[dir == 0 ? 1 : 0] = transform;
-            connecters[dir].Connect();
-        }
-
-        return mesh;
     }
 
     public void SetMeshAndRecalcRename(Mesh mesh)
@@ -398,6 +382,48 @@ public class WallCreater : MonoBehaviour {
 
         var filter = GetComponent<MeshFilter>();
         filter.sharedMesh = mesh;
+    }
+
+    int CalcIndex(int x, int y, int xSize, int ySize)
+    {
+        // indexを求める 不正値の場合は -1
+        if (y < 0 && ySize <= y && x < 0 && xSize <= x) return -1;
+        var result = y + x * ySize;
+        return result;
+
+    }
+
+    Mesh CreateBaseMesh(Vector2Int numVertex)
+    {
+        var ver = new Vector2[numVertex.x * numVertex.y];
+        Debug.Log("頂点数 : " + ver.Length);
+
+        // 頂点の配置
+        int index = 0;
+        for (int i = 0; i < numVertex.x; i++)
+        {
+            for (int j = 0; j < numVertex.y; j++)
+            {
+                //if (i == 0 || j == 0 || i == numVertex.x - 1 || j == numVertex.y - 1) continue;
+
+                Vector2 offset = new Vector2((float)i / numVertex.x, (float)j / numVertex.y);
+                Vector2 addjust = new Vector2(
+                    wallSize.x / (numVertex.x - 1),
+                    wallSize.y / (numVertex.y - 1));  // 範囲調整用 i, j は(ループ回数-1)までの値しかとらないため
+                offset.x *= wallSize.x + addjust.x;
+                offset.y *= wallSize.y + addjust.y;
+                offset += new Vector2(-wallSize.x / 2, -wallSize.y / 2);    // 中心に移動
+                ver[index] = offset;
+
+                // 添字進行
+                index++;
+            }
+        }
+
+        // メッシュの生成
+        var triangulator = new DelaunyTriangulation.Triangulator();
+        Mesh mesh = triangulator.CreateInfluencePolygon(ver);
+        return mesh;
     }
 
 }
