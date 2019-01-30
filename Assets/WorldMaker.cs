@@ -79,7 +79,7 @@ public class WorldMaker : MonoBehaviour
 
         //var filter = GetComponent<MeshFilter>();
         //filter.sharedMesh = CreateMesh();             // CreateMeshはWorldCreaterの関数 コピペ
-        AssetDatabase.CreateAsset(mesh, "Assets/Temp/" + mesh.name + ".asset");
+        AssetDatabase.CreateAsset(mesh, "Assets/Temp/Walls/" + mesh.name + ".asset");
 
     }
 
