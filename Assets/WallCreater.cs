@@ -84,6 +84,8 @@ public class WallCreater : MonoBehaviour {
         {
             for (int j = 0; j < numVertex.y; j++)
             {
+                //if (i == 0 || j == 0 || i == numVertex.x - 1 || j == numVertex.y - 1) continue;
+
                 Vector2 offset = new Vector2((float)i / numVertex.x, (float)j / numVertex.y);
                 Vector2 addjust = new Vector2(
                     wallSize.x / (numVertex.x - 1),
@@ -93,10 +95,10 @@ public class WallCreater : MonoBehaviour {
                 offset += new Vector2(-wallSize.x / 2, -wallSize.y / 2);    // 中心に移動
                 ver[index] = offset;
 
-                // 配置に偏りを作る
-                float xRange = (wallSize.x / numVertex.x / 2) * cellSizeFactor.x;
-                float yRange = (wallSize.y / numVertex.y / 2) * cellSizeFactor.y;
-                ver[index] += new Vector2(UnityEngine.Random.Range(-xRange, xRange), UnityEngine.Random.Range(-yRange, yRange));
+                //// 配置に偏りを作る
+                //float xRange = (wallSize.x / numVertex.x / 2) * cellSizeFactor.x;
+                //float yRange = (wallSize.y / numVertex.y / 2) * cellSizeFactor.y;
+                //ver[index] += new Vector2(UnityEngine.Random.Range(-xRange, xRange), UnityEngine.Random.Range(-yRange, yRange));
 
                 // 添字進行
                 index++;
