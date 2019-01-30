@@ -95,10 +95,10 @@ public class WallCreater : MonoBehaviour {
                 offset += new Vector2(-wallSize.x / 2, -wallSize.y / 2);    // 中心に移動
                 ver[index] = offset;
 
-                //// 配置に偏りを作る
-                //float xRange = (wallSize.x / numVertex.x / 2) * cellSizeFactor.x;
-                //float yRange = (wallSize.y / numVertex.y / 2) * cellSizeFactor.y;
-                //ver[index] += new Vector2(UnityEngine.Random.Range(-xRange, xRange), UnityEngine.Random.Range(-yRange, yRange));
+                // 配置に偏りを作る
+                float xRange = (wallSize.x / numVertex.x / 2) * cellSizeFactor.x;
+                float yRange = (wallSize.y / numVertex.y / 2) * cellSizeFactor.y;
+                ver[index] += new Vector2(UnityEngine.Random.Range(-xRange, xRange), UnityEngine.Random.Range(-yRange, yRange));
 
                 // 添字進行
                 index++;
@@ -370,6 +370,11 @@ public class WallCreater : MonoBehaviour {
         var collider = GetComponent<MeshCollider>();
         collider.sharedMesh = mesh;
 
+        // 子をオブジェクト削除
+        foreach (Transform n in gameObject.transform)
+        {
+            GameObject.Destroy(n.gameObject);
+        }
     }
 
     // Update is called once per frame
