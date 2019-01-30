@@ -42,6 +42,11 @@ public class WallCreater : MonoBehaviour {
 
     Vector3 wallSize = Vector3.zero;
 
+    public Mesh GetMesh()
+    {
+        return GetComponent<MeshFilter>().sharedMesh;
+    }
+
     public void Execute(int step)
     {
         /*
@@ -171,11 +176,20 @@ public class WallCreater : MonoBehaviour {
             vertices[i] += new Vector3(UnityEngine.Random.Range(-xRange, xRange), UnityEngine.Random.Range(-yRange, yRange), 0f);
         }
 
+        // メッシュ全体を立てる
         for (int i = 0; i < vertices.Length; i++)
-        {
-            float noise = Mathf.PerlinNoise(vertices[i].x / noisecCycle, vertices[i].z / noisecCycle);
-            vertices[i] += Vector3.up * baseBumpy * noise;
             vertices[i] = Quaternion.AngleAxis(90f, Vector3.left) * vertices[i];
+
+        // 起伏を付加
+        for (int x = 0; x < numVertex.x; x++)
+        {
+            for (int y = 0; y < numVertex.y; y++)
+            {
+                int i = CalcIndex(x, y, numVertex.x, numVertex.y);
+
+                float noise = Mathf.PerlinNoise(vertices[i].x / noisecCycle, vertices[i].y / noisecCycle);
+                vertices[i] += Vector3.forward * baseBumpy * noise;
+            }
         }
 
         // 特性の付加 --------------------------
@@ -243,9 +257,9 @@ public class WallCreater : MonoBehaviour {
             lineList[i].GetPositions(posList);
             for (int j = 0; j < posList.Length - 1; j++) // 次の頂点も同時に参照するため -1
             {
-                for (int hoge = 0; hoge < 10000; hoge++)        //? ここの補間テキトウ
+                for (int hoge = 0; hoge < 100000; hoge++)        //? ここの補間テキトウ
                 {
-                    var cellPos = calcCellPos(Vector2.Lerp(posList[j], posList[j + 1], hoge / 10000f), gameObject.transform.position, wallSize, numVertex);
+                    var cellPos = calcCellPos(Vector2.Lerp(posList[j], posList[j + 1], hoge / 100000f), gameObject.transform.position, wallSize, numVertex);
                     var tempIndex0 = CalcIndex((int)cellPos.x, (int)cellPos.y, numVertex.x, numVertex.y);
                     Debug.Assert(tempIndex0 != -1);
 
