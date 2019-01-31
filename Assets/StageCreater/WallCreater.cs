@@ -25,7 +25,7 @@ public class WallCreater : MonoBehaviour {
     float baseBumpy = 1.0f;
 
     [SerializeField]
-    float noisecCycle = 5f;
+    Vector2 noisecCycle = new Vector2(18f, 18f);
 
     [SerializeField]
     Vector2 cellSizeFactor = new Vector2(1, 1);
@@ -114,6 +114,11 @@ public class WallCreater : MonoBehaviour {
                     }
                 }
 
+                break;
+            case 4:
+                {
+                    Destroy(this);                   
+                }
                 break;
             default:
                 return false;
@@ -228,7 +233,7 @@ public class WallCreater : MonoBehaviour {
             for (int y = 0; y < numVertex.y; y++)
             {
                 int i = CalcIndex(x, y, numVertex.x, numVertex.y);
-                float noise = Mathf.PerlinNoise(vertices[i].x / noisecCycle, vertices[i].y / noisecCycle);
+                float noise = Mathf.PerlinNoise(vertices[i].x / noisecCycle.x, vertices[i].y / noisecCycle.y);
                 vertices[i] += Vector3.forward * baseBumpy * noise;
             }
         }
