@@ -38,7 +38,17 @@ public class WallCreater : MonoBehaviour {
     // 1:出っ張り位置の下のへこみ具合
     // 2:出っ張り位置の上のへこみ具合
     [SerializeField]
-    float[] grippableBumpySize = new float[2];
+    float[] baseGrippableBumpySize = new float[2];
+
+    // 湾曲性質
+    // x軸, y軸　それぞれで湾曲させる
+    [SerializeField]
+    Vector2 curveDegressToAllOver = new Vector2();
+
+    // x,yで軸の表現 zで角度指定
+    // x,yは0～1の正規表現
+    [SerializeField]
+    Vector3[] curveDegressToAxis = new Vector3[0];
 
     Vector3 wallSize = Vector3.zero;
 
@@ -268,6 +278,7 @@ public class WallCreater : MonoBehaviour {
 
         // 掴み位置特性の付加
         var lineList = gameObject.GetComponentsInChildren<LineRenderer>();
+        var parameterList = gameObject.GetComponentInChildren<GrippableParameter>();
 
         System.Func<Vector3, Vector3, Vector3, Vector2Int, Vector2> calcCellPos =
             (Vector3 linePos, Vector3 offset, Vector3 size, Vector2Int num) =>
@@ -342,7 +353,7 @@ public class WallCreater : MonoBehaviour {
                 Debug.Assert(tempIndex0 != -1);
 
                 if (map[tempIndex0] != (char)WallChipID.Grippable) continue;
-                vertices[tempIndex0] += Vector3.back * grippableBumpySize[0];    // verticesの配置はx, yが逆
+                vertices[tempIndex0] += Vector3.back * baseGrippableBumpySize[0];    // verticesの配置はx, yが逆
                 grippableList[grippableList.Count - 1].Add(tempIndex0);
             }
         }
@@ -359,7 +370,7 @@ public class WallCreater : MonoBehaviour {
                 int tempIndex0 = CalcIndex(i, j + 1, numVertex.x, numVertex.y); // 上のセルを調査
                 if (tempIndex0 == -1) continue;
 
-                vertices[tempIndex1] = new Vector3(vertices[tempIndex1].x, vertices[tempIndex1].y, vertices[tempIndex0].z + grippableBumpySize[1]);
+                vertices[tempIndex1] = new Vector3(vertices[tempIndex1].x, vertices[tempIndex1].y, vertices[tempIndex0].z + baseGrippableBumpySize[1]);
             }
         }
 
@@ -388,23 +399,52 @@ public class WallCreater : MonoBehaviour {
                 if (map[tempIndex0] != (char)WallChipID.Wall) continue;
 
                 int tempIndex1 = CalcIndex(i, j - 1, numVertex.x, numVertex.y);
-                if (tempIndex1 != -1) vertices[tempIndex0] = new Vector3(vertices[tempIndex0].x, vertices[tempIndex0].y, vertices[tempIndex1].z + grippableBumpySize[2]);
+                if (tempIndex1 != -1) vertices[tempIndex0] = new Vector3(vertices[tempIndex0].x, vertices[tempIndex0].y, vertices[tempIndex1].z + baseGrippableBumpySize[2]);
             }
         }
 
+        // 湾曲特性の付加        
+        for (int i = 0; i < numVertex.x; i++)
+        {
+            for (int j = 0; j < numVertex.y; j++)
+            {
+                int tempIndex = CalcIndex(i, j, numVertex.x, numVertex.y);
+                if (tempIndex == -1) continue;
+                float degressPerVert = curveDegressToAllOver.y / numVertex.x;
+                vertices[tempIndex] = Quaternion.AngleAxis(degressPerVert * (i - (numVertex.x / 2)), Vector3.down) * vertices[tempIndex];
+            }
+        }
 
-        // 湾曲特性の付加
-        //float curveRadian = -Mathf.PI / (numVertex.x - 1) / 4;
-        //for (int i = 0; i < numVertex.x; i++)
-        //{
-        //    for (int j = 0; j < numVertex.y; j++)
-        //    {
-        //        int tempIndex = CalcIndex(i, j, numVertex.x, numVertex.y);
-        //        if (tempIndex == -1) continue;
-        //        vertices[tempIndex] = Quaternion.AngleAxis((Mathf.Rad2Deg * curveRadian) * i, Vector3.down) * vertices[tempIndex];
-        //    }
-        //}        
+        for (int i = 0; i < numVertex.x; i++)
+        {
+            for (int j = 0; j < numVertex.y; j++)
+            {
+                int tempIndex = CalcIndex(i, j, numVertex.x, numVertex.y);
+                if (tempIndex == -1) continue;
+                float degressPerVert = curveDegressToAllOver.x / numVertex.y;
+                vertices[tempIndex] = Quaternion.AngleAxis(degressPerVert * (j - (numVertex.y / 2)), Vector3.right) * vertices[tempIndex];
+            }
+        }
 
+        // 軸指定で曲げる
+        //? ?これちゃんと動いてる？
+        for (int i = 0; i < numVertex.x; i++)
+        {
+            for (int j = 0; j < numVertex.y; j++)
+            {
+                int tempIndex = CalcIndex(i, j, numVertex.x, numVertex.y);
+                if (tempIndex == -1) continue;
+
+                foreach (var curvedToAxis in curveDegressToAxis)
+                {
+                    float curveDegress = curvedToAxis.z / 2;
+                    if ((float)i / j < curvedToAxis.x / curvedToAxis.y)
+                        curveDegress = -curveDegress;
+                    
+                    vertices[tempIndex] = Quaternion.AngleAxis(curveDegress, new Vector3(curvedToAxis.x, curvedToAxis.y)) * vertices[tempIndex];
+                }
+            }
+        }
 
         // メッシュへの反映
         mesh.vertices = vertices;

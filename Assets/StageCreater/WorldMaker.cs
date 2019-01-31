@@ -55,7 +55,7 @@ public class WorldMaker : MonoBehaviour
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.S))
         {
             var wallCreaterObjs = GameObject.FindGameObjectsWithTag(wallCreaterTag);
 
