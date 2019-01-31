@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -91,15 +92,27 @@ static public class ClimberMethod
         {
             currentGripping.gameObject.layer = LayerMask.NameToLayer("GrippingPoint");
         }
-
         currentGripping = nextGrippingCollider.gameObject.GetComponent<GrippablePoint2>();
         currentGripping.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
         return nextGrippingCollider;
     }
 
-    static public void ReleaseGrippablePoint(ref GrippablePoint2 currentGripping)
+    class ReleaseGrippablePointAction : ClimbingSystem.Event
     {
-        currentGripping.gameObject.layer = LayerMask.NameToLayer("GrippingPoint");
+        float time = 3.0f;
+        public bool Action(ClimbingSystem system)
+        {
+            
+            var currentGripping = system.grippablePoint;
+            currentGripping.gameObject.layer = LayerMask.NameToLayer("GrippingPoint");
+            return true;
+        }
+    }
+
+
+    static public void ReleaseGrippablePoint(ClimbingSystem system)
+    {        
+
     }
 
     // 二つの座標から回転姿勢を求める

@@ -79,7 +79,7 @@ public class ClimbingSystem : MonoBehaviour {
     [SerializeField]
     SubCollider nearGrippable = null;
 
-    GrippablePoint2 grippablePoint;
+    public GrippablePoint2 grippablePoint;  //? 仮
 
     Rigidbody rigid;
 
@@ -88,6 +88,14 @@ public class ClimbingSystem : MonoBehaviour {
 
     // デバッグ表示用 Gizmos
     List<System.Action> callInOnDrawGizmos;
+
+    // イベント false:破棄
+    public interface Event
+    {
+        bool Action(ClimbingSystem system);
+    }
+
+    public List<Event> events = new List<Event>();
 
     // クライマーのステートマシーン
     InterfaceClimberState currentState;
@@ -143,6 +151,20 @@ public class ClimbingSystem : MonoBehaviour {
     // Update is called once per frame
     void Update ()
     {
+        var removeList = new List<int>();
+        int i = 0;
+        foreach (var e in events)
+        {
+            var re = e.Action(this);        // イベントの実行
+            if (re == false) removeList.Add(i);
+            i++;
+        }
+
+        // index関係で逆順に削除
+        removeList.Reverse();
+        foreach (var index in removeList)
+            events.RemoveAt(index);
+
         currentState.Update(this);
 
         //? 呼び出すタイミングの考察が必要
