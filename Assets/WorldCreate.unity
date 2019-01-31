@@ -206,7 +206,7 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
-  grippableBumpySize:
+  baseGrippableBumpySize:
   - 0
   - 0
   curveDegressToAllOver: {x: 0, y: 0}
@@ -459,11 +459,10 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
-  grippableBumpySize:
-  - 10
-  - 5
-  - 3
-  curveDegressToAllOver: {x: 0, y: 70}
+  baseGrippableBumpySize:
+  - 0
+  - 0
+  curveDegressToAllOver: {x: 0, y: 0}
   curveDegressToAxis: []
 --- !u!23 &121027294
 MeshRenderer:
@@ -1137,11 +1136,10 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
-  grippableBumpySize:
-  - 10
-  - 5
-  - 3
-  curveDegressToAllOver: {x: 0, y: 30}
+  baseGrippableBumpySize:
+  - 0
+  - 0
+  curveDegressToAllOver: {x: 0, y: 0}
   curveDegressToAxis: []
 --- !u!23 &367851528
 MeshRenderer:
@@ -1260,11 +1258,10 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
-  grippableBumpySize:
-  - 10
-  - 5
-  - 3
-  curveDegressToAllOver: {x: 0, y: -85}
+  baseGrippableBumpySize:
+  - 0
+  - 0
+  curveDegressToAllOver: {x: 0, y: 0}
   curveDegressToAxis: []
 --- !u!23 &388681594
 MeshRenderer:
@@ -1514,11 +1511,10 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
-  grippableBumpySize:
-  - 10
-  - 5
-  - 3
-  curveDegressToAllOver: {x: 0, y: 70}
+  baseGrippableBumpySize:
+  - 0
+  - 0
+  curveDegressToAllOver: {x: 0, y: 0}
   curveDegressToAxis: []
 --- !u!23 &502397306
 MeshRenderer:
@@ -2472,10 +2468,10 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 1882649551}
   - {fileID: 0}
-  grippableBumpySize:
-  - 20
-  - 5
-  - 10
+  baseGrippableBumpySize:
+  - 0
+  - 0
+  - 0
   curveDegressToAllOver: {x: 0, y: 0}
   curveDegressToAxis: []
 --- !u!23 &879579980
@@ -3093,11 +3089,10 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
-  grippableBumpySize:
-  - 10
-  - 5
-  - 3
-  curveDegressToAllOver: {x: 0, y: -70}
+  baseGrippableBumpySize:
+  - 0
+  - 0
+  curveDegressToAllOver: {x: 0, y: 0}
   curveDegressToAxis: []
 --- !u!23 &1298033041
 MeshRenderer:
@@ -3336,11 +3331,10 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
-  grippableBumpySize:
-  - 10
-  - 5
-  - 3
-  curveDegressToAllOver: {x: 0, y: -25}
+  baseGrippableBumpySize:
+  - 0
+  - 0
+  curveDegressToAllOver: {x: 0, y: 0}
   curveDegressToAxis: []
 --- !u!23 &1318663778
 MeshRenderer:
@@ -3458,11 +3452,10 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
-  grippableBumpySize:
-  - 10
-  - 5
-  - 3
-  curveDegressToAllOver: {x: 0, y: -70}
+  baseGrippableBumpySize:
+  - 0
+  - 0
+  curveDegressToAllOver: {x: 0, y: 0}
   curveDegressToAxis: []
 --- !u!23 &1321569587
 MeshRenderer:
@@ -3565,10 +3558,9 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
-  grippableBumpySize:
-  - 10
-  - 5
-  - 3
+  baseGrippableBumpySize:
+  - 0
+  - 0
   curveDegressToAllOver: {x: 0, y: 0}
   curveDegressToAxis: []
 --- !u!23 &1350556611
@@ -3779,11 +3771,10 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
-  grippableBumpySize:
-  - 10
-  - 5
-  - 3
-  curveDegressToAllOver: {x: 0, y: -70}
+  baseGrippableBumpySize:
+  - 0
+  - 0
+  curveDegressToAllOver: {x: 0, y: 0}
   curveDegressToAxis: []
 --- !u!23 &1391403878
 MeshRenderer:
@@ -5686,11 +5677,10 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
-  grippableBumpySize:
-  - 10
-  - 5
-  - 3
-  curveDegressToAllOver: {x: 0, y: -85}
+  baseGrippableBumpySize:
+  - 0
+  - 0
+  curveDegressToAllOver: {x: 0, y: 0}
   curveDegressToAxis: []
 --- !u!23 &2106360253
 MeshRenderer:
