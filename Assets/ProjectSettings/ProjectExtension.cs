@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using UnityEditor;
+using UnityEngine;
 using UnityEngine.Events;
 
 [InitializeOnLoad]
@@ -60,4 +61,28 @@ public static class EditorCallBackMethod
             System.Diagnostics.Process.Start("C:/Users/s162121/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Atlassian/Sourcetree");
         };
     }
+}
+
+[CustomEditor(typeof(LineRenderByConnector))]//拡張するクラスを指定
+public class ExampleScriptEditor : Editor
+{
+
+    /// <summary>
+    /// InspectorのGUIを更新
+    /// </summary>
+    public override void OnInspectorGUI()
+    {
+        //元のInspector部分を表示
+        base.OnInspectorGUI();
+
+        //targetを変換して対象を取得
+        var targetScript = target as LineRenderByConnector;
+
+        //ボタンを表示
+        if (GUILayout.Button("Apply"))
+        {
+            targetScript.Apply();
+        }
+    }
+
 }

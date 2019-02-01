@@ -15,6 +15,14 @@ public class WallCreater : MonoBehaviour {
         Wall
     }
 
+    enum WallType
+    {
+        Undefind = -1,
+        Default = 0,
+        Dekoboko,
+        PushBottomToForward
+    }
+
     [SerializeField, Range(0, 2 << 10)]
     int seed = 0;
 
@@ -25,7 +33,11 @@ public class WallCreater : MonoBehaviour {
     float baseBumpy = 1.0f;
 
     [SerializeField]
-    Vector2 noisecCycle = new Vector2(18f, 18f);
+    Vector2 noiseCycle = new Vector2(18f, 18f);
+
+    // 0 ～ 1　の範囲
+    [SerializeField]
+    Vector2 noiseClamp = new Vector2(0, 1);
 
     [SerializeField]
     Vector2 cellSizeFactor = new Vector2(1, 1);
@@ -38,7 +50,7 @@ public class WallCreater : MonoBehaviour {
     // 1:出っ張り位置の下のへこみ具合
     // 2:出っ張り位置の上のへこみ具合
     [SerializeField]
-    float[] baseGrippableBumpySize = new float[2];
+    float[] baseGrippableBumpySize = new float[3];
 
     // 湾曲性質
     // x軸, y軸　それぞれで湾曲させる
@@ -56,7 +68,7 @@ public class WallCreater : MonoBehaviour {
     {
         return GetComponent<MeshFilter>().sharedMesh;
     }
-    bool threadCheckTest = false;
+
     public bool Execute(int step)
     {
 
@@ -227,14 +239,25 @@ public class WallCreater : MonoBehaviour {
         for (int i = 0; i < vertices.Length; i++)
             vertices[i] = Quaternion.AngleAxis(90f, Vector3.left) * vertices[i];
 
+
+
+        System.Func<int, int, int, Vector3[], Vector3> putElevation = (int x, int y, int i, Vector3[] verticesConst) =>
+        {
+            float noise = Mathf.PerlinNoise(verticesConst[i].x / noiseCycle.x, verticesConst[i].y / noiseCycle.y);
+            return Vector3.forward * baseBumpy * noise;
+        };
+
         // 起伏を付加
         for (int x = 0; x < numVertex.x; x++)
         {
             for (int y = 0; y < numVertex.y; y++)
             {
                 int i = CalcIndex(x, y, numVertex.x, numVertex.y);
-                float noise = Mathf.PerlinNoise(vertices[i].x / noisecCycle.x, vertices[i].y / noisecCycle.y);
-                vertices[i] += Vector3.forward * baseBumpy * noise;
+                //vertices[i] = vertices[i] + putElevation(x, y, i, vertices);
+                float noise = Mathf.PerlinNoise(vertices[i].x / noiseCycle.x, vertices[i].y / noiseCycle.y);
+                noise = Mathf.Clamp(noise, noiseClamp.x, noiseClamp.y);
+                vertices[i] = vertices[i] + Vector3.forward * baseBumpy * noise;
+
             }
         }
 
@@ -245,45 +268,10 @@ public class WallCreater : MonoBehaviour {
         for (int i = 0; i < map.Length; i++)
             map[i] = (char)0;
 
-        //for (int i = 0; i < numVertex.x; i++)
-        //    for (int j = 0; j < numVertex.y; j++)
-        //        if (j == numVertex.y / 2) map[i, j] = (char)WallChipID.Grippable;
-
-        //! 掴み位置を上下で隣接して配置するのは禁止
-        //! 掴み位置が一か所に対して2つ隣接するのは禁止
-        //for (int i = 0; i < numVertex.x; i++)
-        //    for (int j = 0; j < numVertex.y; j++)
-        //        if (i == numVertex.y / 2) map[i, j] = (char)WallChipID.Grippable;
-
-        //for (int i = 0; i < numVertex.y; i++)
-        //    for (int j = 0; j < numVertex.x; j++)
-        //        if (i == numVertex.y / 2 - 1) map[j, i] = (char)WallChipID.WallReverse;
-
-        //for (int i = 0; i < numVertex.y; i++)
-        //    for (int j = 0; j < numVertex.x; j++)
-        //        if (i == numVertex.y / 2 + 1) map[j, i] = (char)WallChipID.Ground;
-
-        // 掴み位置特性の付加
-        //var a = new List<int>();
-        //for (int i = 0; i < numVertex.x; i++)
-        //{ 
-        //    for (int j = 0; j < numVertex.y; j++)
-        //    {
-        //        int tempIndex0 = CalcIndex(i, j, numVertex.x, numVertex.y); // 頂点インデックスに変換する
-        //        Debug.Assert(tempIndex0 != -1);
-
-        //        if (map[i, j] != (char)WallChipID.Grippable) continue;
-        //        vertices[tempIndex0] += Vector3.back * grippableBumpySize[0];    // verticesの配置はx, yが逆
-        //        a.Add(tempIndex0);
-
-        //    }
-        //}
-
-
-
         // 掴み位置特性の付加
         var lineList = gameObject.GetComponentsInChildren<LineRenderer>();
-        var parameterList = gameObject.GetComponentInChildren<GrippableParameter>();
+
+        //var parameterList = gameObject.GetComponentInChildren<GrippableParameter>();
 
         System.Func<Vector3, Vector3, Vector3, Vector2Int, Vector2> calcCellPos =
             (Vector3 linePos, Vector3 offset, Vector3 size, Vector2Int num) =>
@@ -302,6 +290,7 @@ public class WallCreater : MonoBehaviour {
         {
             Vector3[] posList = new Vector3[lineList[i].positionCount];
             lineList[i].GetPositions(posList);
+
             for (int j = 0; j < posList.Length - 1; j++) // 次の頂点も同時に参照するため -1
             {
                 int lerpDivision = (int)(posList[j] - posList[j + 1]).sqrMagnitude;
@@ -349,6 +338,7 @@ public class WallCreater : MonoBehaviour {
         // 掴み位置特性の付加
         grippableList = new List<List<int>>();
         grippableList.Add(new List<int>());
+        bool isConnected = false;
         for (int j = 0; j < numVertex.y; j++)
         {
             grippableList.Add(new List<int>());
@@ -357,7 +347,17 @@ public class WallCreater : MonoBehaviour {
                 int tempIndex0 = CalcIndex(i, j, numVertex.x, numVertex.y); // 頂点インデックスに変換する
                 Debug.Assert(tempIndex0 != -1);
 
-                if (map[tempIndex0] != (char)WallChipID.Grippable) continue;
+                if (map[tempIndex0] != (char)WallChipID.Grippable)
+                {
+                    if (isConnected)
+                    {
+                        isConnected = false;
+                        grippableList.Add(new List<int>());
+                    }
+                    continue;
+                };
+
+                isConnected = true;
                 vertices[tempIndex0] += Vector3.back * baseGrippableBumpySize[0];    // verticesの配置はx, yが逆
                 grippableList[grippableList.Count - 1].Add(tempIndex0);
             }
