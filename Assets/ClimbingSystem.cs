@@ -79,7 +79,8 @@ public class ClimbingSystem : MonoBehaviour {
     [SerializeField]
     SubCollider nearGrippable = null;
 
-    GrippablePoint2 grippablePoint;
+    // 0:left 1:right
+    GrippablePoint2[] grippablePoint;
 
     Rigidbody rigid;
 
@@ -127,7 +128,7 @@ public class ClimbingSystem : MonoBehaviour {
 
         // 進む方向の手を定義する
         ClimberMethod.SetHandForwardAndBack(ref rightHand, ref leftHand, Vector3.right);
-
+        grippablePoint = new GrippablePoint2[] { null, null};
         // 仮
         currentState = new AirState();
         nextState = null;
@@ -256,8 +257,9 @@ public class ClimbingSystem : MonoBehaviour {
             //if (airTime < 2f) return;
             if (nearGripColi != null)
             {
-                system.grippablePoint = system.nearGrippable.GetComponent<GrippablePoint2>();
-                system.grippingCollider = ClimberMethod.ChangeGrippablePoint(ref system.grippablePoint, nearGripColi);
+                system.grippablePoint[0] = system.grippablePoint[1] = system.nearGrippable.GetComponent<GrippablePoint2>();
+                system.grippingCollider = ClimberMethod.ChangeGrippablePoint(ref system.grippablePoint[0], nearGripColi);
+                system.grippingCollider = ClimberMethod.ChangeGrippablePoint(ref system.grippablePoint[1], nearGripColi);
 
                 system.ChangeState(new GrippingWallState());
             }
@@ -302,8 +304,12 @@ public class ClimbingSystem : MonoBehaviour {
             forwardHand = system.rightHand; backHand = system.leftHand;
 
             //Vector3[] handsPos = ClimberMethod.GetHandsPosition(forwardHand, backHand);
-            system.grippablePoint.SetHandsPosition(forwardHand, system.grippingCollider);　            // 仮
-            system.grippablePoint.SetHandsPosition(backHand, system.grippingCollider);　            // 仮
+            int[] leftAndRight;
+            if (forwardHand == system.leftHand) leftAndRight = new int[2] { 0, 1 };
+            else leftAndRight = new int[2] { 0, 1 };
+
+            system.grippablePoint[leftAndRight[0]].SetHandsPosition(forwardHand, system.grippingCollider);　            // 仮
+            system.grippablePoint[leftAndRight[1]].SetHandsPosition(backHand, system.grippingCollider);　            // 仮
 
         }
 
@@ -342,26 +348,29 @@ public class ClimbingSystem : MonoBehaviour {
                 //Gizmos.DrawWireSphere(system.nearGrippable.transform.position);
             });
 
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                float jumpPower = ClimberMethod.CalcJumpPower(1f, 1f, system.level.maxJumpPowerFactor, system.level.baseJumpPower);
-                var jumpDir = ClimberMethod.CalcJumpDir(system.level.jumpingDirction, inputMovement, system.level.shotControlFactor, system.grippablePoint.GetWallDirection() * Vector3.forward);
-                ClimberMethod.Jump(jumpDir, system.rigid, ref system.grippablePoint, jumpPower);
-                system.ChangeState(new AirState());
+            //if (Input.GetKeyDown(KeyCode.Space))
+            //{
+            //    float jumpPower = ClimberMethod.CalcJumpPower(1f, 1f, system.level.maxJumpPowerFactor, system.level.baseJumpPower);
+            //    var jumpDir = ClimberMethod.CalcJumpDir(system.level.jumpingDirction, inputMovement, system.level.shotControlFactor, system.grippablePoint.GetWallDirection() * Vector3.forward);
+            //    ClimberMethod.Jump(jumpDir, system.rigid, ref system.grippablePoint, jumpPower);
+            //    system.ChangeState(new AirState());
 
-                return;
-            }
+            //    return;
+            //}
 
             Vector3 moveVec = Vector3.zero;
             //GameObject forwardHand = null;
+            int[] leftAndRight;
+            if (forwardHand == system.leftHand) leftAndRight = new int[] { 0, 1 };
+            else leftAndRight = new int[] { 1, 0 };
             switch (system.handMovementMode)
             {
                 case HandMovementMode.Catch:
-                    float step = system.grippablePoint.SetHandsPosition(forwardHand, system.grippingCollider, 0.5f);
+                    float step = system.grippablePoint[leftAndRight[0]].SetHandsPosition(forwardHand, system.grippingCollider, 0.5f);
                     bool isFinished = 0.000001f > step;
                     if (isFinished)
                     {
-                        system.grippablePoint.SetHandsPosition(forwardHand, system.grippingCollider);
+                        system.grippablePoint[leftAndRight[0]].SetHandsPosition(forwardHand, system.grippingCollider);
                         //system.handMovementMode = HandMovementMode.Advance;
                         system.isChange = false;
                     }
@@ -394,9 +403,14 @@ public class ClimbingSystem : MonoBehaviour {
 
             var nearGripColi = ClimberMethod.CheckGripPoint(inputMovement, system.nearGrippable, system.level.ableInputGrippingLimitCos);
 
+            int[] leftAndRight;
+            if (forwardHand == system.leftHand) leftAndRight = new int[] { 0, 1 };
+            else leftAndRight = new int[] { 1, 0 };
+
+
             if (nearGripColi != null)
             {
-                system.grippingCollider = ClimberMethod.ChangeGrippablePoint(ref system.grippablePoint, nearGripColi);
+                system.grippingCollider = ClimberMethod.ChangeGrippablePoint(ref system.grippablePoint[leftAndRight[0]], nearGripColi);
                 //system.handMovementMode = HandMovementMode.Catch;
                 system.isChange = true;
 
@@ -404,11 +418,11 @@ public class ClimbingSystem : MonoBehaviour {
 
             if (system.isChange)
             {
-                float step = system.grippablePoint.SetHandsPosition(forwardHand, system.grippingCollider, 0.5f);
+                float step = system.grippablePoint[leftAndRight[0]].SetHandsPosition(forwardHand, system.grippingCollider, 0.5f);
                 bool isFinished = 0.000001f > step;
                 if (isFinished)
                 {
-                    system.grippablePoint.SetHandsPosition(forwardHand, system.grippingCollider);
+                    system.grippablePoint[leftAndRight[0]].SetHandsPosition(forwardHand, system.grippingCollider);
                     system.handMovementMode = HandMovementMode.Close;
                     //system.handMovementMode = HandMovementMode.Advance;
                 }
@@ -417,9 +431,9 @@ public class ClimbingSystem : MonoBehaviour {
             // 移動方向を求める
             if (inputMovementMagni > Mathf.Epsilon)
             {
-                var edge = system.grippablePoint.GetEdgeFromDirection(inputMovement);
+                var edge = system.grippablePoint[leftAndRight[0]].GetEdgeFromDirection(inputMovement);
                 ClimberMethod.SetHandForwardAndBack(ref forwardHand, ref backHand, edge);
-                moveVec = system.grippablePoint.CalcMoveDirction(inputMovement);
+                moveVec = system.grippablePoint[leftAndRight[0]].CalcMoveDirction(inputMovement);
             }
             else
             {
@@ -445,7 +459,7 @@ public class ClimbingSystem : MonoBehaviour {
                     moveVec.normalized,
                     Mathf.Max(magnitudeHandToHand, 1f),
                     system.level.handMovementSpdFactor);
-                movement = system.grippablePoint.ClampHandsMovement(forwardHand.transform.position, movement);
+                movement = system.grippablePoint[leftAndRight[0]].ClampHandsMovement(forwardHand.transform.position, movement);
 
                 forwardHand.transform.Translate(movement, Space.World);
             }
@@ -461,13 +475,17 @@ public class ClimbingSystem : MonoBehaviour {
 
             var level = system.level;
 
+            int[] leftAndRight;
+            if (forwardHand == system.leftHand) leftAndRight = new int[] { 0, 1 };
+            else leftAndRight = new int[] { 1, 0 };
+
             if (system.isChange)
             {
-                float step = system.grippablePoint.SetHandsPosition(backHand, system.grippingCollider, 0.5f);
+                float step = system.grippablePoint[leftAndRight[1]].SetHandsPosition(backHand, system.grippingCollider, 0.5f);
                 bool isFinished = 0.000001f > step;
                 if (isFinished)
                 {
-                    system.grippablePoint.SetHandsPosition(backHand, system.grippingCollider, 1f);
+                    system.grippablePoint[leftAndRight[1]].SetHandsPosition(backHand, system.grippingCollider, 1f);
                     system.isChange = false;
                 };
             }

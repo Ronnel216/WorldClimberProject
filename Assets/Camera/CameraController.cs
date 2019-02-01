@@ -14,6 +14,8 @@ public class CameraController : MonoBehaviour {
     [SerializeField]
     float maxCameraSpd = 0.5f;
 
+    public GrippablePoint2[] grip = new GrippablePoint2[2];
+
     //! カメラの位置が直上や真下になるのを防止するため
 
     // カメラのY軸方向の移動可能範囲 半径

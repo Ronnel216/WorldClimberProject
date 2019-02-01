@@ -1097,7 +1097,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!64 &367851526
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -1953,6 +1953,9 @@ MonoBehaviour:
   target: {fileID: 1761719689}
   distanceToTarget: 5
   maxCameraSpd: 0.5
+  grip:
+  - {fileID: 0}
+  - {fileID: 0}
   controllableAreaHalfY: 0.8
   limitControlSpringPower: 1
 --- !u!1 &756412544
