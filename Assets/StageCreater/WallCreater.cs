@@ -69,6 +69,15 @@ public class WallCreater : MonoBehaviour {
         return GetComponent<MeshFilter>().sharedMesh;
     }
 
+    public void ApplyLineConnector()
+    {
+        var lineConnectors = GetComponentsInChildren<LineRenderByConnector>();
+        foreach (var c in lineConnectors)
+        {
+            c.Apply();
+        }
+    }
+
     public bool Execute(int step)
     {
 
@@ -227,8 +236,10 @@ public class WallCreater : MonoBehaviour {
             for (int y = 1; y < numVertex.y - 1; y++)
             {
                 int i = CalcIndex(x, y, numVertex.x, numVertex.y);
-                float xRange = (wallSize.x / numVertex.x / 2) * cellSizeFactor.x;
-                float yRange = (wallSize.y / numVertex.y / 2) * cellSizeFactor.y;
+                float xRange = (wallSize.x / numVertex.x) * cellSizeFactor.x;
+                float yRange = (wallSize.y / numVertex.y) * cellSizeFactor.y;
+                xRange /= 2;
+                yRange /= 2;
 
                 vertices[i] += new Vector3(UnityEngine.Random.Range(-xRange, xRange), UnityEngine.Random.Range(-yRange, yRange), 0f);
             }
