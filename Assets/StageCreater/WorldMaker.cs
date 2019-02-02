@@ -9,6 +9,11 @@ public class WorldMaker : MonoBehaviour
     string wallCreaterTag = "Wall";
     WallCreater[] wallCreaters = null;
 
+
+    // 仮
+    int step = 0;
+    int createrId = 0;
+
     void Awake()
     {
 
@@ -21,11 +26,16 @@ public class WorldMaker : MonoBehaviour
         int i = 0;
         foreach (var obj in wallCreaterObjs)
             wallCreaters[i++] = obj.GetComponent<WallCreater>();
-
+        
         foreach (var creater in wallCreaters)
         {
             Debug.Assert(creater != null);
         }
+
+        //? プレイシーン中のみ反映され　混乱するためコメアウト
+        //// LineConnectorの反映
+        //foreach (var creater in wallCreaters)
+        //    creater.ApplyLineConnector();
 
         //foreach (var creater in wallCreaters)
         //{
@@ -36,8 +46,6 @@ public class WorldMaker : MonoBehaviour
         //}
 
     }
-    int step = 0;
-    int createrId = 0;
 
     void Update()
     {

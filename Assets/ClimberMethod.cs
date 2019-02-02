@@ -110,7 +110,7 @@ static public class ClimberMethod
     }
 
 
-    static public void ReleaseGrippablePoint(ClimbingSystem system)
+    static public void ReleaseGrippablePoint(ref GrippablePoint2 grippoint)
     {        
 
     }
