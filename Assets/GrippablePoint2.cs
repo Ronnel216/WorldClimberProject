@@ -144,7 +144,7 @@ public class GrippablePoint2 : MonoBehaviour
     //    return totalSqr;
     //}
 
-    public float SetHandsPosition(GameObject hand, Collider selfColi, float lerp = 1.0f)
+    public float SetHandPosition(GameObject hand, Collider selfColi, float lerp = 1.0f)
     {
         var pos = hand.transform.position;
         var target = selfColi.ClosestPoint(pos);
