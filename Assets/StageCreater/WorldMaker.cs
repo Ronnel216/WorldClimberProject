@@ -51,9 +51,9 @@ public class WorldMaker : MonoBehaviour
     {
         if (createrId < wallCreaters.Length)
         {
-            Debug.Log("Execute" + step + "Start");
+            //Debug.Log("Execute" + step + "Start");
             var isExecuted = wallCreaters[createrId].Execute(step);
-            Debug.Log("Execute" + step + "Finished");
+            //Debug.Log("Execute" + step + "Finished");
             step++;
 
             if (isExecuted == false)

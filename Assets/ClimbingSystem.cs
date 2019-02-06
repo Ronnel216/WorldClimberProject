@@ -49,6 +49,9 @@ public class ClimbingSystem : MonoBehaviour {
         // ジャンプ方向
         public Vector3 jumpingDirction = Vector3.forward;
 
+        [Range(0f, 1f)]
+        public float groundRadian = 0.5f;
+
         public void Init()
         {
             jumpingDirction.Normalize();
@@ -80,6 +83,10 @@ public class ClimbingSystem : MonoBehaviour {
     SubCollider nearGrippable = null;
 
     public GrippablePoint2 grippablePoint;  //? 仮
+
+    bool isOnground = false;
+
+    List<Vector3> wallNormals = new List<Vector3>();
 
     Rigidbody rigid;
 
@@ -176,11 +183,28 @@ public class ClimbingSystem : MonoBehaviour {
             currentState.Init(this);
 
         }
+
+        // 衝突中の壁の法線方向をリセット
+        wallNormals.Clear();
     }
 
     void ChangeState(InterfaceClimberState newState)
     {
         nextState = newState;
+    }
+
+    private void OnCollisionStay(Collision collision)
+    {
+        var contacts = collision.contacts;
+        
+        var normal = Vector3.zero;
+
+        if (collision.gameObject.tag != "Wall") return;
+        foreach (var contact in contacts)
+            normal += contact.normal;
+        normal /= contacts.Length;
+
+        wallNormals.Add(normal);
     }
 
     void OnDrawGizmos()
@@ -225,9 +249,7 @@ public class ClimbingSystem : MonoBehaviour {
         void Update(ClimbingSystem system);
 
         
-    }
-
-    
+    }    
 
     /// <summary>
     /// 空中で何も手を触れていない状態
@@ -284,6 +306,12 @@ public class ClimbingSystem : MonoBehaviour {
                 system.ChangeState(new GrippingWallState());
             }
 
+            if (system.isOnground)
+            {
+                Debug.Log("ride");
+                Debug.Break();
+            }
+
         }
 
         public void Update(ClimbingSystem system)
@@ -297,6 +325,10 @@ public class ClimbingSystem : MonoBehaviour {
             //    system.ChangeState(new AirState());
             //}
 
+            foreach (var normal in system.wallNormals)
+            {
+                system.rigid.AddForce(normal, ForceMode.VelocityChange);
+            }
         }
 
     }
