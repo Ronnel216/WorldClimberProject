@@ -131,6 +131,7 @@ public class WallCreater : MonoBehaviour {
                     // 子をオブジェクト削除
                     foreach (Transform n in gameObject.transform)
                     {
+                        if (n.tag == "GrippingPoint") continue;
                         GameObject.Destroy(n.gameObject);
                     }
                 }
@@ -477,7 +478,7 @@ public class WallCreater : MonoBehaviour {
                 Vector3[] worldVert = new Vector3[2] { vertices[grippableList[i][j]], vertices[grippableList[i][j + 1]] };
                 for (int worldVertI = 0; worldVertI < worldVert.Length; worldVertI++)
                     worldVert[worldVertI] = transform.TransformPoint(worldVert[worldVertI]);
-                GrippablePoint2.CreateEdges(worldVert[0], worldVert[1]);
+                GrippablePoint2.CreateEdges(worldVert[0], worldVert[1], gameObject.transform);
             }
         }
     }

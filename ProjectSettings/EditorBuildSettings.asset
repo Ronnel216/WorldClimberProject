@@ -11,3 +11,6 @@ EditorBuildSettings:
   - enabled: 0
     path: 
     guid: 00000000000000000000000000000000
+  - enabled: 1
+    path: Assets/Temp/Walls/Play.unity
+    guid: 4ef36752fd641954e90ced60dbc66bfb

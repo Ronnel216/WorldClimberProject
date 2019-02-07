@@ -17,10 +17,12 @@ public class GrippablePoint2 : MonoBehaviour
     Color baseColor = new Color(0.2f, 0.2f, 1f, 1f);
     Color grippableColor = Color.green;
 
-    static public GrippablePoint2 CreateEdges(Vector3 start, Vector3 end)
+    static public GrippablePoint2 CreateEdges(Vector3 start, Vector3 end, Transform parent = null)
     {
         if (prefab == null) prefab = (GameObject)Resources.Load("GripPoint");
         var obj = Instantiate(prefab);
+        if (parent)
+            obj.transform.parent = parent;
 
         var grip = obj.GetComponent<GrippablePoint2>();
         grip.edges[0] = start;

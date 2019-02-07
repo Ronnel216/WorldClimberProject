@@ -63,20 +63,20 @@ public class WorldMaker : MonoBehaviour
             }
         }
 
-        //if (Input.GetKeyDown(KeyCode.S))
-        //{
-        //    var wallCreaterObjs = GameObject.FindGameObjectsWithTag(wallCreaterTag);
+        if (Input.GetKeyDown(KeyCode.S))
+        {
+            var wallCreaterObjs = GameObject.FindGameObjectsWithTag(wallCreaterTag);
 
-        //    foreach (var obj in wallCreaterObjs)
-        //    {
-        //        SaveMesh(obj.GetComponent<MeshFilter>().sharedMesh);
-        //    }
+            foreach (var obj in wallCreaterObjs)
+            {
+                SaveMesh(obj.GetComponent<MeshFilter>().sharedMesh);
+            }
 
-        //    foreach (var obj in wallCreaterObjs)
-        //    {
-        //        SaveObject(obj);
-        //    }
-        //}
+            foreach (var obj in wallCreaterObjs)
+            {
+                SaveObject(obj);
+            }
+        }
     }
 
     void SaveMesh(Mesh mesh)

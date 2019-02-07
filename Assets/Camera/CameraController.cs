@@ -5,7 +5,7 @@ using UnityEngine;
 public class CameraController : MonoBehaviour {
 
     [SerializeField]
-    GameObject target = null; // クラス名を取得したい
+    public GameObject target = null; // クラス名を取得したい
 
     [SerializeField]
     float distanceToTarget = 5.0f;
@@ -13,6 +13,8 @@ public class CameraController : MonoBehaviour {
     // カメラ制御速度
     [SerializeField]
     float maxCameraSpd = 0.5f;
+
+    Vector3 lookPos = Vector3.zero;
 
     public GrippablePoint2[] grip = new GrippablePoint2[2];
 
@@ -37,14 +39,21 @@ public class CameraController : MonoBehaviour {
     // Use this for initialization
     void Start () {
         //spheremover = gameObject.GetComponent<SphereMover>();
+        lookPos = target.transform.position;
 	}
 	
 	// Update is called once per frame
 	void Update () {
 
-        Vector3 targetPos = target.transform.position + Vector3.back * 10 + Vector3.up * 4;
+        Vector3 targetPos = target.transform.position + Vector3.back * 13 + Vector3.up * 4;
         transform.position = Vector3.Lerp(transform.position, targetPos, 0.05f);
-        transform.LookAt(target.transform);
+
+        float xaxis = Input.GetAxis("R_Stick_H");
+        float yaxis = Input.GetAxis("R_Stick_V");
+        var input = new Vector2(xaxis, yaxis);
+        Vector3 offset = new Vector3(input.x, input.y, 0) * 10;
+
+        transform.LookAt(Vector3.Lerp(lookPos, target.transform.position + offset, 0.99f));
 
         return;
         direction = gameObject.transform.rotation;

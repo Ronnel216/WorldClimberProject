@@ -42,22 +42,24 @@ static public class ClimberMethod
 
     static public bool GetInputJumpTrigger()
     {
-        return Input.GetKeyDown(KeyCode.Space) ? true : false;
+        bool result = Input.GetKeyDown("joystick button 0");
+        return result;
     }
 
     static public bool GetInputCatch()
-    {
-        return Input.GetMouseButton(0) ? true : false;
+    {        
+        return Input.GetKey("joystick button 5") ? true : false;
     }
 
     // 移動スティック入力（右スティック）    カメラの向きが反映される
     static public Vector2 GetInputMovement()
     {
         Vector2 result = Vector2.zero;
-        if (Input.GetKey(KeyCode.D)) result += Vector2.right;
-        if (Input.GetKey(KeyCode.A)) result += Vector2.left;
-        if (Input.GetKey(KeyCode.W)) result += Vector2.up;
-        if (Input.GetKey(KeyCode.S)) result += Vector2.down;
+        result.x = Input.GetAxis("Horizontal");
+        result.y = Input.GetAxis("Vertical");
+        //if (Input.GetKey(KeyCode.A)) result += Vector2.left;
+        //if (Input.GetKey(KeyCode.W)) result += Vector2.up;
+        //if (Input.GetKey(KeyCode.S)) result += Vector2.down;
         return result;
     }
 
@@ -180,9 +182,10 @@ static public class ClimberMethod
     {
         // アンカーの状態を反映する
         var ancharRigid = anchar.GetComponent<Rigidbody>();
-        rigid.transform.position = ancharRigid.transform.position + ancharRigid.rotation * offset;
-        rigid.transform.rotation = ancharRigid.transform.rotation;
-        rigid.velocity = ancharRigid.velocity;
+        rigid.transform.position = Vector3.Lerp(rigid.transform.position, ancharRigid.transform.position + ancharRigid.rotation * offset, 0.5f);
+        rigid.transform.rotation = Quaternion.Lerp(rigid.rotation, ancharRigid.transform.rotation, 0.2f);
+        rigid.transform.rotation = Quaternion.Lerp(rigid.rotation, Quaternion.identity, 0.1f);
+        rigid.velocity = Vector3.Lerp(rigid.velocity, ancharRigid.velocity, 0.5f);
 
     }
 
