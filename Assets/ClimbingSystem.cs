@@ -52,6 +52,9 @@ public class ClimbingSystem : MonoBehaviour {
         [Range(0f, 1f)]
         public float groundRadian = 0.5f;
 
+        public Vector3 gripPosOffset = Vector3.back * 0.1f;
+
+
         public void Init()
         {
             jumpingDirction.Normalize();
@@ -62,7 +65,6 @@ public class ClimbingSystem : MonoBehaviour {
 
         public float maxHandToHand { get; set; }
         public float minHandToHand { get; set; }
-
     }
     [SerializeField]
     LevelDesign level;
@@ -72,19 +74,20 @@ public class ClimbingSystem : MonoBehaviour {
     GameObject leftHand;
 
     [SerializeField]
-    GameObject rightHand;    
+    GameObject rightHand;
 
     [SerializeField]
-    GameObject garpAncharBase = null;
+    GameObject gripAncharBase = null;
     [SerializeField]
     GameObject gripAnchar = null;
 
     [SerializeField]
     SubCollider nearGrippable = null;
 
-    public GrippablePoint2 grippablePoint;  //? 仮
+    [SerializeField]
+    SubCollider farGrippable = null;
 
-    bool isOnground = false;
+    GrippablePoint2 grippablePoint;
 
     List<Vector3> wallNormals = new List<Vector3>();
 
@@ -95,6 +98,8 @@ public class ClimbingSystem : MonoBehaviour {
 
     // デバッグ表示用 Gizmos
     List<System.Action> callInOnDrawGizmos;
+
+    bool canCatch = true;
 
     // イベント false:破棄
     public interface Event
@@ -120,6 +125,8 @@ public class ClimbingSystem : MonoBehaviour {
         Catch
     }
     HandMovementMode handMovementMode;
+
+    float unenableColliderResetTime = -1f;
 
     // Use this for initialization
     void Start () {
@@ -158,6 +165,14 @@ public class ClimbingSystem : MonoBehaviour {
     // Update is called once per frame
     void Update ()
     {
+
+        if (unenableColliderResetTime > 0)
+        {
+            unenableColliderResetTime -= Time.deltaTime;
+            if (unenableColliderResetTime <= 0)
+                GetComponent<BoxCollider>().enabled = true;
+        }
+
         var removeList = new List<int>();
         int i = 0;
         foreach (var e in events)
@@ -186,11 +201,19 @@ public class ClimbingSystem : MonoBehaviour {
 
         // 衝突中の壁の法線方向をリセット
         wallNormals.Clear();
+
     }
 
     void ChangeState(InterfaceClimberState newState)
     {
         nextState = newState;
+    }
+
+    void UnenableCollider(float time)
+    {
+        Debug.Assert(unenableColliderResetTime < 0, "連続して使用できない");
+        unenableColliderResetTime = time;
+        GetComponent<BoxCollider>().enabled = false;
     }
 
     private void OnCollisionStay(Collision collision)
@@ -257,9 +280,11 @@ public class ClimbingSystem : MonoBehaviour {
     class AirState : InterfaceClimberState
     {
         float jumpHoge = 0.0f;  // 仮の滞空中制御
-        float airTime = 0f;
 
-        public void Init(ClimbingSystem system) { }
+        public void Init(ClimbingSystem system)
+        {
+            system.canCatch = false;
+        }
 
         public void FixedUpdate(ClimbingSystem system)
         {
@@ -273,43 +298,49 @@ public class ClimbingSystem : MonoBehaviour {
                 else jumpHoge = -1.0f;
 
             }
-            
 
-            var inputMovement = ClimberMethod.GetInputMovement3D();
-            inputMovement.z = 0f;
-            ClimberMethod.Swap(ref inputMovement.y, ref inputMovement.z);
-            if (inputMovement.sqrMagnitude > Mathf.Epsilon)
-            {
-                system.rigid.AddForce(inputMovement * system.level.airControlVelocity, ForceMode.VelocityChange);
-            }
+            // 空中移動
+            //var inputMovement = ClimberMethod.GetInputMovement3D();
+            //inputMovement.z = 0f;
+            //ClimberMethod.Swap(ref inputMovement.y, ref inputMovement.z);
+            //if (inputMovement.sqrMagnitude > Mathf.Epsilon)
+            //{
+            //    system.rigid.AddForce(inputMovement * system.level.airControlVelocity, ForceMode.VelocityChange);
+            //}
 
-            {
-                //! デバッグ用　舞空術
-                if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.Space))
-                {
-                    system.rigid.AddForce(Vector3.up * 0.8f, ForceMode.VelocityChange);
-                }
-            }
+            //{
+            //    //! デバッグ用　舞空術
+            //    if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.Space))
+            //    {
+            //        system.rigid.AddForce(Vector3.up * 0.8f, ForceMode.VelocityChange);
+            //    }
+            //}
 
             var nearGripColi = ClimberMethod.CheckGripPoint(
                 system.rigid.velocity.normalized,
                 system.nearGrippable,
                 system.level.ableInputGrippingLimitCos);
 
-            airTime += Time.deltaTime;
-            //if (airTime < 2f) return;
             if (nearGripColi != null)
             {
-                system.grippablePoint = system.nearGrippable.GetComponent<GrippablePoint2>();
-                system.grippingCollider = ClimberMethod.ChangeGrippablePoint(ref system.grippablePoint, nearGripColi);
-
-                system.ChangeState(new GrippingWallState());
+                var temp = nearGripColi.gameObject.GetComponent<GrippablePoint2>();
             }
 
-            if (system.isOnground)
+            if (ClimberMethod.GetInputCatch() == false)
             {
-                Debug.Log("ride");
-                Debug.Break();
+                system.canCatch = true;
+                return;
+            }
+            if (system.canCatch == false) return;
+
+            if (nearGripColi != null)
+            {
+                //system.grippablePoint = system.nearGrippable.GetComponent<GrippablePoint2>();
+                system.grippingCollider = ClimberMethod.ChangeGrippablePoint(ref system.grippablePoint, nearGripColi);
+                var ancharRigid = system.gripAncharBase.GetComponent<Rigidbody>();
+                Quaternion rotation = Quaternion.FromToRotation(Vector3.forward, nearGripColi.GetComponent<GrippablePoint2>().GetEdgeDirection());
+                ClimberMethod.SetGrippingAnchar(ancharRigid, nearGripColi.ClosestPoint(system.rigid.position), rotation);
+                system.ChangeState(new GrippingWallState());
             }
 
         }
@@ -367,12 +398,15 @@ public class ClimbingSystem : MonoBehaviour {
             var handsPos = ClimberMethod.GetHandsPosition(system.rightHand, system.leftHand);
 
             // 崖つかまり時の　アンカー設定
-            var ancharRigid = system.garpAncharBase.GetComponent<Rigidbody>();
+            var ancharRigid = system.gripAncharBase.GetComponent<Rigidbody>();
             Quaternion rotation = ClimberMethod.CalcRotationXZ(handsPos[0], handsPos[1]);
-            ClimberMethod.SetGrippingAnchar(ancharRigid, (handsPos[0] + handsPos[1]) / 2, rotation);
+            //ClimberMethod.SetGrippingAnchar(ancharRigid, (handsPos[0] + handsPos[1]) / 2, rotation);
+            ClimberMethod.SetGrippingAnchar(ancharRigid
+                , ancharRigid.transform.position
+                , Quaternion.Lerp(ancharRigid.transform.rotation, rotation, 1f));
 
             // アンカーの状態を反映する
-            ClimberMethod.ApplyGrippingAnchar(system.rigid, system.gripAnchar.GetComponent<Rigidbody>());
+            ClimberMethod.ApplyGrippingAnchar(system.rigid, system.gripAnchar.GetComponent<Rigidbody>(), system.level.gripPosOffset);
 
         }
 
@@ -390,17 +424,40 @@ public class ClimbingSystem : MonoBehaviour {
             var inputMovementMagni = inputMovement.magnitude;
             DebugVisualizeVector3.visualize = inputMovement;
 
+            if (ClimberMethod.GetInputCatch() == false)
+            {
+                system.ChangeState(new AirState());
+                return;
+            }
+
             // 掴んだ状態で移動できる範囲
             system.callInOnDrawGizmos.Add(() =>
             {
                 //Gizmos.DrawWireSphere(system.nearGrippable.transform.position);
             });
 
-            if (Input.GetKeyDown(KeyCode.Space))
+            if (ClimberMethod.GetInputJumpTrigger())
             {
                 float jumpPower = ClimberMethod.CalcJumpPower(1f, 1f, system.level.maxJumpPowerFactor, system.level.baseJumpPower);
                 var jumpDir = ClimberMethod.CalcJumpDir(system.level.jumpingDirction, inputMovement, system.level.shotControlFactor, system.grippablePoint.GetWallDirection() * Vector3.forward);
+                jumpDir = Vector3.up;
+                //var farGripColi = ClimberMethod.CheckGripPoint(inputMovement, system.farGrippable, system.level.ableInputGrippingLimitCos);
+                //if (farGripColi != null)
+                //{
+                //    var closePos = farGripColi.ClosestPoint(system.gripAncharBase.transform.position);
+                //    var dir = closePos - system.rigid.transform.position;
+
+
+                //    dir.y = 1f;
+                //    dir.Normalize();
+
+                //    jumpDir = dir;
+                //}
+                //}
+
+                //jumpDir = 
                 ClimberMethod.Jump(jumpDir, system.rigid, ref system.grippablePoint, jumpPower);
+                //system.UnenableCollider(0.2f);
                 system.ChangeState(new AirState());
 
                 return;
@@ -408,31 +465,65 @@ public class ClimbingSystem : MonoBehaviour {
 
             Vector3 moveVec = Vector3.zero;
             //GameObject forwardHand = null;
+
+            // 移動方向を求める
+            if (inputMovementMagni > Mathf.Epsilon)
+            {
+                var edge = system.grippablePoint.GetEdgeFromDirection(inputMovement);
+                moveVec = system.grippablePoint.CalcMoveDirction(inputMovement);
+            }
+            bool canMoving = Vector3.Dot(moveVec, inputMovement) > system.level.ableInputMovementLimitCos;
+            if (canMoving == false) return;
+
+
+            var movement = ClimberMethod.CalcLerpTranslation(
+                moveVec.normalized,
+                1f,
+                system.level.handMovementSpdFactor);
+                movement = system.grippablePoint.ClampHandsMovement(system.gripAncharBase.transform.position, movement);
+            //if (movement.sqrMagnitude <= 0)
+            //{
+            var nearGripColi = ClimberMethod.CheckGripPoint(inputMovement, system.nearGrippable, system.level.ableInputGrippingLimitCos);
+
+            if (nearGripColi != null)
+            {
+                var closePos = nearGripColi.ClosestPoint(system.gripAncharBase.transform.position);
+                if ((closePos - system.gripAncharBase.transform.position).sqrMagnitude < Mathf.Epsilon * Mathf.Epsilon)
+                {
+                    system.grippingCollider = ClimberMethod.ChangeGrippablePoint(ref system.grippablePoint, nearGripColi);
+                    //system.handMovementMode = HandMovementMode.Catch;
+                    //system.isChange = true;
+
+                }
+            }
+            //}
+            system.gripAncharBase.transform.Translate(movement);
+
             switch (system.handMovementMode)
             {
-                case HandMovementMode.Catch:
-                    float step = system.grippablePoint.SetHandPosition(forwardHand, system.grippingCollider, 0.5f);
-                    bool isFinished = 0.000001f > step;
-                    if (isFinished)
-                    {
-                        system.grippablePoint.SetHandPosition(forwardHand, system.grippingCollider);
-                        //system.handMovementMode = HandMovementMode.Advance;
-                        system.isChange = false;
-                    }
-                    break;
+                //case HandMovementMode.Catch:
+                //    float step = system.grippablePoint.SetHandPosition(forwardHand, system.grippingCollider, 0.5f);
+                //    bool isFinished = 0.000001f > step;
+                //    if (isFinished)
+                //    {
+                //        system.grippablePoint.SetHandPosition(forwardHand, system.grippingCollider);
+                //        //system.handMovementMode = HandMovementMode.Advance;
+                //        system.isChange = false;
+                //    }
+                //    break;
 
-                case HandMovementMode.Advance:
-                    AdvaneHand(inputMovement, system);
-                    break;
+                //case HandMovementMode.Advance:
+                //    AdvaneHand(inputMovement, system);
+                //    break;
 
-                case HandMovementMode.Close:
-                    CloseHand(inputMovement, system);
-                    break;
+                //case HandMovementMode.Close:
+                //    CloseHand(inputMovement, system);
+                //    break;
 
-                default:
-                    // 通らないはず
-                    Debug.Log("HandMovementMode == None");
-                    break;
+                //default:
+                //    // 通らないはず
+                //    Debug.Log("HandMovementMode == None");
+                //    break;
             }
 
         }

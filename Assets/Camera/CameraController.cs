@@ -42,7 +42,9 @@ public class CameraController : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
-        transform.position = target.transform.position + Vector3.back * 7 + Vector3.up * 4;
+        Vector3 targetPos = target.transform.position + Vector3.back * 10 + Vector3.up * 4;
+        transform.position = Vector3.Lerp(transform.position, targetPos, 0.05f);
+        transform.LookAt(target.transform);
 
         return;
         direction = gameObject.transform.rotation;

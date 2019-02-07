@@ -14,6 +14,9 @@ public class GrippablePoint2 : MonoBehaviour
 
     static GameObject prefab = null;
 
+    Color baseColor = new Color(0.2f, 0.2f, 1f, 1f);
+    Color grippableColor = Color.green;
+
     static public GrippablePoint2 CreateEdges(Vector3 start, Vector3 end)
     {
         if (prefab == null) prefab = (GameObject)Resources.Load("GripPoint");
@@ -40,6 +43,12 @@ public class GrippablePoint2 : MonoBehaviour
     void Awake()
     {
 
+    }
+
+    
+    public void VisualizeGrippable(bool isVisualize)
+    {
+        GetComponent<Light>().enabled = isVisualize;
     }
 
     public Quaternion GetWallDirection()

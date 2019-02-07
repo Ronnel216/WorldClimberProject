@@ -40,14 +40,24 @@ static public class ClimberMethod
         return translation * step;
     }
 
+    static public bool GetInputJumpTrigger()
+    {
+        return Input.GetKeyDown(KeyCode.Space) ? true : false;
+    }
+
+    static public bool GetInputCatch()
+    {
+        return Input.GetMouseButton(0) ? true : false;
+    }
+
     // 移動スティック入力（右スティック）    カメラの向きが反映される
     static public Vector2 GetInputMovement()
     {
         Vector2 result = Vector2.zero;
-        if (Input.GetKey(KeyCode.RightArrow)) result += Vector2.right;
-        if (Input.GetKey(KeyCode.LeftArrow)) result += Vector2.left;
-        if (Input.GetKey(KeyCode.UpArrow)) result += Vector2.up;
-        if (Input.GetKey(KeyCode.DownArrow)) result += Vector2.down;
+        if (Input.GetKey(KeyCode.D)) result += Vector2.right;
+        if (Input.GetKey(KeyCode.A)) result += Vector2.left;
+        if (Input.GetKey(KeyCode.W)) result += Vector2.up;
+        if (Input.GetKey(KeyCode.S)) result += Vector2.down;
         return result;
     }
 
@@ -92,27 +102,14 @@ static public class ClimberMethod
         {
             currentGripping.gameObject.layer = LayerMask.NameToLayer("GrippingPoint");
         }
-        currentGripping = nextGrippingCollider.gameObject.GetComponent<GrippablePoint2>();
+        currentGripping = nextGrippingCollider.gameObject.GetComponent<GrippablePoint2>();  
         currentGripping.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
         return nextGrippingCollider;
     }
 
-    class ReleaseGrippablePointAction : ClimbingSystem.Event
-    {
-        float time = 3.0f;
-        public bool Action(ClimbingSystem system)
-        {
-            
-            var currentGripping = system.grippablePoint;
-            currentGripping.gameObject.layer = LayerMask.NameToLayer("GrippingPoint");
-            return true;
-        }
-    }
-
-
     static public void ReleaseGrippablePoint(ref GrippablePoint2 grippoint)
-    {        
-
+    {
+        grippoint.gameObject.layer = LayerMask.NameToLayer("GrippingPoint");
     }
 
     // 二つの座標から回転姿勢を求める
@@ -179,11 +176,11 @@ static public class ClimberMethod
         connectedRigid.transform.rotation = rotation;
     }
 
-    static public void ApplyGrippingAnchar(Rigidbody rigid, Rigidbody anchar)
+    static public void ApplyGrippingAnchar(Rigidbody rigid, Rigidbody anchar, Vector3 offset)
     {
         // アンカーの状態を反映する
         var ancharRigid = anchar.GetComponent<Rigidbody>();
-        rigid.transform.position = ancharRigid.transform.position;
+        rigid.transform.position = ancharRigid.transform.position + ancharRigid.rotation * offset;
         rigid.transform.rotation = ancharRigid.transform.rotation;
         rigid.velocity = ancharRigid.velocity;
 
